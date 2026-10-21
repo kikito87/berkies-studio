@@ -1,0 +1,2674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Berkies & Bean — Creative Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#f4efe6;
+  --white:#fffdf9;
+  --bark:#3e2c1c;
+  --moss:#3a4f35;
+  --moss-light:#4e6647;
+  --stone:#8a7c6e;
+  --fog:#ddd5c8;
+  --parch:#e8e0d2;
+  --gold:#b07d2e;
+  --gold-light:#c9963e;
+  --ink:#1a1510;
+  --red:#a83232;
+  --shadow:rgba(62,44,28,0.08);
+}
+
+body{
+  font-family:'Jost',sans-serif;
+  font-weight:300;
+  background:var(--bg);
+  color:var(--ink);
+  min-height:100vh;
+  background-image:
+    radial-gradient(ellipse at 0% 0%,rgba(58,79,53,0.06) 0%,transparent 55%),
+    radial-gradient(ellipse at 100% 100%,rgba(176,125,46,0.05) 0%,transparent 55%);
+}
+
+/* ── SETUP BANNER ── */
+#setup-banner{
+  background:var(--bark);
+  color:var(--bg);
+  padding:.75rem 2rem;
+  font-size:.8rem;
+  text-align:center;
+  letter-spacing:.02em;
+  line-height:1.6;
+  display:none;
+}
+#setup-banner code{
+  background:rgba(255,255,255,.15);
+  padding:.1rem .4rem;
+  border-radius:3px;
+  font-family:monospace;
+}
+
+/* ── HEADER ── */
+.header{
+  max-width:1040px;
+  margin:0 auto;
+  padding:1.8rem 2.5rem 0;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:1rem;
+}
+.brand{
+  font-family:'Playfair Display',serif;
+  font-size:1.6rem;
+  font-weight:300;
+  color:var(--bark);
+  letter-spacing:.02em;
+}
+.brand em{font-style:italic;color:var(--moss)}
+.brand-sub{
+  font-size:.7rem;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--stone);
+  margin-top:.15rem;
+}
+
+/* settings gear */
+.settings-btn{
+  background:none;
+  border:1px solid var(--fog);
+  border-radius:4px;
+  padding:.45rem .7rem;
+  cursor:pointer;
+  color:var(--stone);
+  font-size:.75rem;
+  font-family:'Jost',sans-serif;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  display:flex;align-items:center;gap:.4rem;
+  transition:border-color .2s,color .2s;
+}
+.settings-btn:hover{border-color:var(--moss);color:var(--moss)}
+
+/* ── TABS ── */
+.tabs-bar{
+  max-width:1040px;
+  margin:1.5rem auto 0;
+  padding:0 2.5rem;
+  display:flex;
+  gap:0;
+  border-bottom:1px solid var(--fog);
+}
+.tab{
+  padding:.7rem 1.6rem;
+  border:none;
+  background:none;
+  font-family:'Jost',sans-serif;
+  font-size:.82rem;
+  font-weight:400;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--stone);
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+  transition:color .2s,border-color .2s;
+  display:flex;align-items:center;gap:.5rem;
+}
+.tab.active{color:var(--moss);border-bottom-color:var(--moss);font-weight:500}
+.tab-badge{
+  background:var(--gold);
+  color:white;
+  border-radius:10px;
+  padding:.05rem .45rem;
+  font-size:.65rem;
+  font-weight:500;
+  display:none;
+}
+.tab-badge.visible{display:inline-block}
+
+/* ── MAIN ── */
+main{
+  max-width:1040px;
+  margin:0 auto;
+  padding:2.5rem 2.5rem 5rem;
+}
+.panel{display:none}
+.panel.active{display:block}
+
+/* ── SETTINGS DRAWER ── */
+.settings-drawer{
+  background:var(--white);
+  border:1px solid var(--fog);
+  border-radius:6px;
+  padding:1.5rem 1.8rem;
+  margin-bottom:2rem;
+  display:none;
+  box-shadow:0 2px 20px var(--shadow);
+  animation:fadeDown .2s ease;
+}
+.settings-drawer.open{display:block}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+.settings-label{
+  font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--stone);margin-bottom:.4rem;display:block;
+}
+.settings-select,.settings-input{
+  width:100%;border:1px solid var(--fog);border-radius:4px;
+  padding:.65rem .9rem;font-family:'Jost',sans-serif;font-size:.88rem;
+  font-weight:300;color:var(--ink);background:var(--bg);
+  outline:none;transition:border-color .2s;
+  appearance:none;
+}
+.settings-select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a7c6e' stroke-width='1.3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right .8rem center;cursor:pointer;
+}
+.settings-select:focus,.settings-input:focus{border-color:var(--moss);background:white}
+
+/* ── SECTION TITLES ── */
+.section-eyebrow{
+  font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:.4rem;
+}
+.section-title{
+  font-family:'Playfair Display',serif;
+  font-size:1.6rem;font-weight:300;color:var(--bark);
+  line-height:1.2;margin-bottom:.5rem;
+}
+.section-title em{font-style:italic;color:var(--moss)}
+.section-desc{font-size:.88rem;color:var(--stone);line-height:1.7;margin-bottom:2rem;max-width:560px}
+
+/* ── UPLOAD AREA ── */
+.upload-area{
+  border:1.5px dashed var(--fog);
+  border-radius:8px;
+  background:var(--white);
+  padding:2.5rem;
+  text-align:center;
+  cursor:pointer;
+  position:relative;
+  transition:border-color .2s,background .2s;
+  margin-bottom:1.5rem;
+}
+.upload-area:hover{border-color:var(--moss);background:var(--parch)}
+.upload-area input[type=file]{
+  position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
+}
+.upload-area.has-image{border-style:solid;border-color:var(--fog);padding:0;overflow:hidden}
+.upload-preview{width:100%;max-height:420px;object-fit:contain;display:block;background:var(--parch)}
+.upload-change{
+  position:absolute;bottom:12px;right:12px;
+  background:rgba(255,253,249,.92);
+  border:1px solid var(--fog);border-radius:4px;
+  padding:.35rem .8rem;font-size:.72rem;font-family:'Jost',sans-serif;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--stone);
+  cursor:pointer;transition:all .15s;
+}
+.upload-change:hover{border-color:var(--moss);color:var(--moss)}
+.upload-icon{
+  width:44px;height:44px;color:var(--stone);opacity:.35;margin:0 auto .8rem;
+}
+.upload-title{font-size:.95rem;color:var(--bark);font-weight:400;margin-bottom:.25rem}
+.upload-sub{font-size:.8rem;color:var(--stone)}
+
+/* ── FORM FIELDS ── */
+.field{margin-bottom:1.2rem}
+.field label{
+  display:block;font-size:.7rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--stone);margin-bottom:.45rem;
+}
+textarea.field-input,input.field-input{
+  width:100%;border:1px solid var(--fog);border-radius:4px;
+  padding:.75rem 1rem;font-family:'Jost',sans-serif;font-size:.9rem;
+  font-weight:300;color:var(--ink);background:var(--bg);
+  outline:none;transition:border-color .2s;line-height:1.6;
+}
+textarea.field-input{resize:vertical;min-height:90px}
+textarea.field-input:focus,input.field-input:focus{border-color:var(--moss);background:white}
+textarea.field-input::placeholder,input.field-input::placeholder{color:var(--stone);opacity:.5;font-style:italic}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.select-wrap{position:relative}
+.select-wrap select{
+  width:100%;border:1px solid var(--fog);border-radius:4px;
+  padding:.75rem 2rem .75rem 1rem;font-family:'Jost',sans-serif;
+  font-size:.88rem;font-weight:300;color:var(--ink);background:var(--bg);
+  appearance:none;outline:none;cursor:pointer;transition:border-color .2s;
+}
+.select-wrap select:focus{border-color:var(--moss)}
+.select-wrap::after{
+  content:'';position:absolute;right:.8rem;top:50%;transform:translateY(-50%);
+  width:10px;height:6px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a7c6e' stroke-width='1.3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center;
+}
+
+/* ── BUTTONS ── */
+.primary-btn{
+  width:100%;padding:1.05rem;background:var(--bark);color:var(--bg);
+  border:none;border-radius:5px;font-family:'Jost',sans-serif;
+  font-size:.83rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
+  cursor:pointer;transition:background .2s;position:relative;overflow:hidden;
+  margin-top:1rem;
+}
+.primary-btn:hover:not(:disabled){background:var(--moss)}
+.primary-btn:disabled{background:var(--stone);cursor:not-allowed}
+.progress-bar{
+  position:absolute;bottom:0;left:0;height:3px;
+  background:var(--gold);width:0;transition:width .5s ease;
+}
+.status-line{
+  text-align:center;font-size:.78rem;color:var(--stone);
+  font-style:italic;margin-top:.6rem;min-height:1.1em;
+}
+
+/* ── EDIT RESULTS ── */
+.edit-result{
+  background:var(--white);border:1px solid var(--fog);border-radius:6px;
+  overflow:hidden;box-shadow:0 2px 20px var(--shadow);margin-top:2rem;
+  animation:slideIn .35s ease forwards;
+}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.edit-result-header{
+  padding:1.2rem 1.6rem;border-bottom:1px solid var(--parch);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.edit-result-title{
+  font-family:'Playfair Display',serif;
+  font-size:1rem;font-weight:400;color:var(--bark);
+}
+.brand-score{
+  display:flex;align-items:center;gap:.5rem;
+  font-size:.75rem;color:var(--stone);
+}
+.score-dots{display:flex;gap:3px}
+.score-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--fog);transition:background .3s;
+}
+.score-dot.filled{background:var(--moss)}
+.score-dot.partial{background:var(--gold)}
+
+.edit-section{
+  padding:1.3rem 1.6rem;
+  border-bottom:1px solid var(--parch);
+}
+.edit-section:last-child{border-bottom:none}
+.edit-section-label{
+  font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--stone);margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem;
+}
+.edit-section-label .dot{
+  width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;
+}
+.edit-body{font-size:.9rem;line-height:1.75;color:var(--ink)}
+.edit-body strong{font-weight:500;color:var(--bark)}
+
+.suggestion-list{list-style:none;display:flex;flex-direction:column;gap:.6rem}
+.suggestion-list li{
+  display:flex;gap:.75rem;align-items:flex-start;
+  font-size:.88rem;line-height:1.6;color:var(--ink);
+}
+.suggestion-list li::before{
+  content:'→';color:var(--gold);font-weight:500;flex-shrink:0;margin-top:.05rem;
+}
+
+.tool-rec{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:var(--parch);border:1px solid var(--fog);
+  border-radius:4px;padding:.4rem .9rem;
+  font-size:.82rem;color:var(--bark);margin:.3rem .3rem 0 0;
+}
+.tool-rec .tool-name{font-weight:500}
+.tool-rec .tool-why{color:var(--stone);font-size:.78rem}
+
+/* ── READY BUTTON ── */
+.ready-btn{
+  width:100%;padding:1.1rem;
+  background:linear-gradient(135deg,var(--moss),var(--moss-light));
+  color:white;border:none;border-radius:5px;
+  font-family:'Jost',sans-serif;font-size:.83rem;font-weight:500;
+  letter-spacing:.12em;text-transform:uppercase;cursor:pointer;
+  transition:opacity .2s,transform .1s;margin-top:1.5rem;
+  display:flex;align-items:center;justify-content:center;gap:.6rem;
+}
+.ready-btn:hover{opacity:.9}
+.ready-btn:active{transform:scale(.998)}
+.ready-btn svg{width:16px;height:16px}
+
+/* ── LISTING TAB ── */
+.slots-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(275px,1fr));
+  gap:1.2rem;margin-bottom:1.5rem;
+}
+.slot{
+  background:var(--white);border:1.5px dashed var(--fog);
+  border-radius:6px;overflow:hidden;position:relative;
+  transition:border-color .2s,box-shadow .2s;
+}
+.slot.has-content{border-style:solid;border-color:var(--fog);box-shadow:0 2px 16px var(--shadow)}
+.slot.has-content:hover{border-color:var(--moss)}
+.slot.carried-over{border-color:var(--gold);box-shadow:0 0 0 2px rgba(176,125,46,.15)}
+
+.slot-upload-zone{
+  height:155px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  cursor:pointer;gap:.45rem;transition:background .2s;position:relative;
+}
+.slot-upload-zone:hover{background:var(--parch)}
+.slot-upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.slot-preview{width:100%;height:155px;object-fit:cover;display:block}
+.slot-body{padding:.9rem}
+.slot-num{font-size:.63rem;letter-spacing:.14em;text-transform:uppercase;color:var(--stone);margin-bottom:.45rem}
+.slot-num .carried-tag{
+  background:var(--gold);color:white;border-radius:10px;
+  padding:.05rem .45rem;font-size:.6rem;margin-left:.4rem;
+}
+.slot-desc{
+  width:100%;border:1px solid var(--fog);border-radius:4px;
+  padding:.6rem .75rem;font-family:'Jost',sans-serif;font-size:.82rem;
+  font-weight:300;color:var(--ink);background:var(--bg);
+  resize:none;height:75px;line-height:1.5;outline:none;transition:border-color .2s;
+}
+.slot-desc:focus{border-color:var(--moss);background:white}
+.slot-desc::placeholder{color:var(--stone);opacity:.5;font-style:italic}
+.slot-meta{display:flex;gap:.45rem;margin-top:.5rem}
+.slot-select{
+  flex:1;border:1px solid var(--fog);border-radius:4px;
+  padding:.42rem .5rem;font-family:'Jost',sans-serif;font-size:.76rem;
+  font-weight:300;color:var(--ink);background:var(--bg);
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%238a7c6e' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right .45rem center;
+  outline:none;cursor:pointer;
+}
+.remove-btn{
+  position:absolute;top:7px;right:7px;width:22px;height:22px;
+  background:rgba(255,253,249,.9);border:none;border-radius:50%;
+  cursor:pointer;display:none;align-items:center;justify-content:center;
+  color:var(--stone);font-size:13px;z-index:2;transition:color .15s;
+}
+.slot:hover .remove-btn{display:flex}
+.remove-btn:hover{color:var(--red)}
+
+.add-slot-btn{
+  background:none;border:1.5px dashed var(--fog);border-radius:6px;
+  padding:.9rem;cursor:pointer;color:var(--stone);font-family:'Jost',sans-serif;
+  font-size:.8rem;width:100%;display:flex;align-items:center;justify-content:center;
+  gap:.45rem;transition:all .2s;margin-bottom:1.8rem;
+}
+.add-slot-btn:hover{border-color:var(--moss);color:var(--moss);background:rgba(58,79,53,.03)}
+
+/* ── RESULT CARDS ── */
+.result-card{
+  background:var(--white);border:1px solid var(--fog);border-radius:6px;
+  overflow:hidden;box-shadow:0 2px 20px var(--shadow);margin-bottom:1.4rem;
+  animation:slideIn .3s ease forwards;
+}
+.result-header{display:flex;border-bottom:1px solid var(--parch)}
+.result-thumb{width:110px;min-height:90px;object-fit:cover;flex-shrink:0}
+.result-thumb-ph{
+  width:110px;background:var(--parch);display:flex;
+  align-items:center;justify-content:center;flex-shrink:0;
+}
+.result-thumb-ph svg{width:28px;height:28px;color:var(--stone);opacity:.4}
+.result-header-info{padding:.9rem 1.2rem;display:flex;flex-direction:column;justify-content:center}
+.result-num{font-size:.65rem;letter-spacing:.13em;text-transform:uppercase;color:var(--stone);margin-bottom:.25rem}
+.result-listing-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--ink);line-height:1.3}
+.result-price{margin-top:.35rem;font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--moss)}
+.result-body{padding:1.1rem 1.4rem}
+.field-row{margin-bottom:1rem}
+.field-label{
+  font-size:.67rem;letter-spacing:.13em;text-transform:uppercase;color:var(--stone);
+  margin-bottom:.35rem;display:flex;align-items:center;justify-content:space-between;
+}
+.copy-btn{
+  background:none;border:1px solid var(--fog);border-radius:3px;
+  padding:.16rem .48rem;font-size:.64rem;font-family:'Jost',sans-serif;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--stone);
+  cursor:pointer;transition:all .15s;
+}
+.copy-btn:hover{border-color:var(--moss);color:var(--moss)}
+.copy-btn.copied{border-color:var(--gold);color:var(--gold)}
+.field-text{font-size:.87rem;line-height:1.7;color:var(--ink)}
+.tags-row{display:flex;flex-wrap:wrap;gap:.3rem}
+.tag{
+  background:var(--parch);border:1px solid var(--fog);border-radius:20px;
+  padding:.18rem .6rem;font-size:.74rem;color:var(--bark);
+}
+.trend-note{
+  background:var(--parch);padding:.7rem 1rem;border-top:1px solid var(--fog);
+  font-size:.8rem;color:var(--stone);font-style:italic;display:flex;gap:.5rem;align-items:flex-start;
+}
+.trend-note::before{content:'↑';color:var(--gold);font-style:normal;font-weight:500;flex-shrink:0}
+
+.error-msg{
+  font-size:.82rem;color:var(--red);padding:.8rem 1rem;
+  background:#fdf0ee;border:1px solid #f0c8c0;border-radius:4px;
+  margin-top:.8rem;display:none;
+}
+.results-title{
+  font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:300;
+  color:var(--bark);margin-bottom:1.3rem;padding-bottom:.7rem;border-bottom:1px solid var(--fog);
+}
+
+@media(max-width:640px){
+  .header{flex-direction:column;align-items:flex-start;gap:.5rem}
+  main{padding:1.5rem 1rem 4rem}
+  .two-col,.settings-grid{grid-template-columns:1fr}
+  .slots-grid{grid-template-columns:1fr}
+  .result-thumb,.result-thumb-ph{width:80px}
+}
+
+/* ── INTERACTIVE / EDITABLE RESULTS ── */
+.results-toolbar{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:1.2rem}
+.tool-btn{
+  display:inline-flex;align-items:center;gap:.4rem;background:var(--bark);color:var(--bg);
+  border:none;border-radius:5px;padding:.6rem 1rem;font-family:'Jost',sans-serif;
+  font-size:.74rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;transition:background .2s,border-color .2s,color .2s;
+}
+.tool-btn:hover{background:var(--moss)}
+.tool-btn.ghost{background:none;border:1px solid var(--fog);color:var(--stone)}
+.tool-btn.ghost:hover{border-color:var(--moss);color:var(--moss);background:none}
+.tool-btn.copied{background:var(--gold)}
+.tool-btn:disabled{opacity:.6;cursor:wait}
+.saved-note{font-size:.72rem;color:var(--moss);font-style:italic;margin-left:auto;display:flex;align-items:center;gap:.35rem}
+.saved-note::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--moss)}
+.edit-input,.edit-area{
+  width:100%;border:1px solid var(--fog);border-radius:4px;padding:.55rem .7rem;
+  font-family:'Jost',sans-serif;font-size:.87rem;font-weight:300;color:var(--ink);
+  background:var(--bg);outline:none;transition:border-color .15s,background .15s;line-height:1.65;
+}
+.edit-input:focus,.edit-area:focus{border-color:var(--moss);background:white}
+.edit-area{resize:vertical;min-height:130px}
+.edit-title{font-family:'Playfair Display',serif;font-size:1rem}
+.card-actions{display:flex;gap:.5rem;padding:.2rem 1.4rem 1.2rem;flex-wrap:wrap}
+.edit-hint{font-size:.74rem;color:var(--stone);font-style:italic;margin:-.4rem 0 1.1rem}
+.social-block{margin-top:1.1rem;padding-top:1.1rem;border-top:1px dashed var(--fog)}
+.print-block{margin-top:1.1rem;padding-top:1.1rem;border-top:1px dashed var(--fog)}
+.print-head{font-size:.7rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);margin-bottom:.7rem}
+.print-controls{display:flex;gap:.7rem;flex-wrap:wrap}
+.print-ctl{flex:1;min-width:160px;font-size:.67rem;letter-spacing:.06em;text-transform:uppercase;color:var(--stone);display:flex;flex-direction:column;gap:.3rem}
+.print-ctl select{font-size:.82rem;text-transform:none;letter-spacing:0;color:var(--ink)}
+.print-flag{margin-top:.7rem;font-size:.8rem;color:var(--bark);background:#fdf6ee;border:1px solid #e7d3ab;border-radius:5px;padding:.6rem .8rem;line-height:1.5}
+.print-summary{background:var(--parch);border:1px solid var(--fog);border-radius:5px;padding:.7rem .9rem;margin-bottom:.7rem}
+.print-summary>div{font-size:.85rem;color:var(--ink);line-height:1.7}
+.print-summary>div span{display:inline-block;min-width:140px;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--stone)}
+.print-summary>div em{color:var(--stone);font-style:normal}
+.print-summary>div.rec{color:var(--bark);font-weight:500}
+.print-summary>div.rec span{color:var(--moss)}
+.print-sml{font-size:.82rem;color:var(--ink);margin-bottom:.8rem}
+.print-sml strong{color:var(--moss)}
+.social-block-top{margin-top:0;padding-top:0;border-top:none}
+.social-head{font-size:.7rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem}
+.slot-ptype{width:100%;margin:.5rem 0 .55rem;font-size:.78rem}
+.reel-block{margin-top:1.1rem;padding:1rem 1.1rem;background:var(--parch);border:1px solid var(--fog);border-radius:6px}
+.reel-head{display:flex;align-items:center;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--bark);font-weight:500;margin-bottom:.7rem}
+.reel-row{display:flex;gap:.7rem;font-size:.83rem;line-height:1.55;color:var(--ink);margin-bottom:.5rem}
+.reel-row:last-child{margin-bottom:0}
+.reel-k{flex-shrink:0;width:74px;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--stone);padding-top:.15rem}
+.reel-shots{margin:0;padding-left:1.1rem}
+.reel-shots li{margin-bottom:.2rem}
+/* inline contextual help */
+.howto{
+  background:var(--white);border:1px solid var(--fog);border-radius:6px;
+  padding:0 1.1rem;margin-bottom:1.6rem;box-shadow:0 2px 12px var(--shadow);
+}
+.howto>summary{
+  list-style:none;cursor:pointer;padding:.85rem 0;font-size:.78rem;font-weight:500;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--moss);
+  display:flex;align-items:center;gap:.5rem;
+}
+.howto>summary::-webkit-details-marker{display:none}
+.howto>summary::before{content:'ⓘ';font-size:.95rem}
+.howto>summary::after{content:'▸';margin-left:auto;transition:transform .2s;color:var(--stone)}
+.howto[open]>summary::after{transform:rotate(90deg)}
+.howto-body{padding:0 0 1.1rem;font-size:.86rem;line-height:1.7;color:var(--ink)}
+.howto-body ol{margin:.3rem 0 0;padding-left:1.2rem}
+.howto-body li{margin-bottom:.4rem}
+.howto-body strong{color:var(--bark);font-weight:500}
+</style>
+</head>
+<body>
+
+<div id="setup-banner">API key saved to this browser.</div>
+
+<div class="header">
+  <div>
+    <div class="brand">Berkies <em>&</em> Bean</div>
+    <div class="brand-sub">Creative Studio</div>
+  </div>
+  <button class="settings-btn" onclick="toggleSettings()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Settings
+  </button>
+</div>
+
+<div class="tabs-bar">
+  <button class="tab active" id="tab-edit" onclick="switchTab('edit')">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    Edit Guidance
+  </button>
+  <button class="tab" id="tab-list" onclick="switchTab('list')">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+    Create Listings
+    <span class="tab-badge" id="listing-badge">1</span>
+  </button>
+  <button class="tab" id="tab-audit" onclick="switchTab('audit')">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    Shop Audit
+  </button>
+</div>
+
+<main>
+
+  <!-- ── SETTINGS DRAWER ── -->
+  <div class="settings-drawer" id="settings-drawer">
+    <div class="settings-grid">
+      <div>
+        <span class="settings-label">Editing software</span>
+        <select class="settings-select" id="setting-software" onchange="toggleCustomSoftware(this)">
+          <option value="">Not sure yet</option>
+          <option value="Lightroom Mobile">Lightroom Mobile (free)</option>
+          <option value="Adobe Lightroom">Adobe Lightroom (desktop)</option>
+          <option value="Adobe Photoshop">Adobe Photoshop</option>
+          <option value="Snapseed">Snapseed (free, phone)</option>
+          <option value="Canva">Canva</option>
+          <option value="VSCO">VSCO</option>
+          <option value="iPhone Photos app">iPhone Photos app</option>
+          <option value="__other__">Other…</option>
+        </select>
+        <input type="text" class="settings-input" id="setting-software-custom"
+          placeholder="Type your editing app…"
+          style="display:none;margin-top:.5rem">
+      </div>
+      <div>
+        <span class="settings-label">Comfort with editing</span>
+        <select class="settings-select" id="setting-skill">
+          <option value="beginner">Just starting out</option>
+          <option value="intermediate" selected>Some experience</option>
+          <option value="advanced">Pretty comfortable</option>
+        </select>
+      </div>
+    </div>
+    <p style="font-size:.75rem;color:var(--stone);margin-top:.9rem">These settings shape how advice is worded — beginner-friendly vs technical. Saved for your session.</p>
+    <div style="margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--fog)">
+      <span class="settings-label">API Key</span>
+      <div style="display:flex;gap:.6rem;align-items:center">
+        <input id="key-input" type="password" placeholder="sk-ant-api03-..."
+          style="flex:1;border:1px solid var(--fog);border-radius:4px;padding:.6rem .9rem;
+          font-family:'Jost',sans-serif;font-size:.85rem;color:var(--ink);background:var(--bg);outline:none;"
+          value="">
+        <button onclick="saveApiKey()" style="
+          padding:.6rem 1.1rem;background:var(--bark);color:var(--bg);border:none;
+          border-radius:4px;font-family:'Jost',sans-serif;font-size:.75rem;font-weight:500;
+          letter-spacing:.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap;
+        ">Save Key</button>
+      </div>
+      <p style="font-size:.72rem;color:var(--stone);margin-top:.4rem">
+        Stored in this browser only. Get your key at console.anthropic.com → API Keys.
+      </p>
+      <p id="key-status" style="font-size:.72rem;color:var(--moss);margin-top:.4rem;display:none">✓ A key is saved on this device.</p>
+    </div>
+    <div style="margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--fog)">
+      <span class="settings-label">Tool health check</span>
+      <p style="font-size:.72rem;color:var(--stone);margin-bottom:.6rem">
+        Confirms Etsy's export still works the same way, checks current fees, and flags anything the tool should know about. Worth a tap every few months.
+      </p>
+      <button onclick="checkToolHealth()" id="health-btn" style="
+        padding:.6rem 1.1rem;background:none;border:1px solid var(--fog);color:var(--stone);
+        border-radius:4px;font-family:'Jost',sans-serif;font-size:.75rem;font-weight:500;
+        letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:border-color .2s,color .2s;
+      " onmouseover="this.style.borderColor='var(--moss)';this.style.color='var(--moss)'"
+         onmouseout="this.style.borderColor='var(--fog)';this.style.color='var(--stone)'">
+        Check tool health
+      </button>
+      <div id="health-result" style="display:none;margin-top:.9rem"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       TAB 1 — EDIT GUIDANCE
+  ══════════════════════════════════ -->
+  <div class="panel active" id="panel-edit">
+
+    <div class="section-eyebrow">Step 1</div>
+    <h1 class="section-title">Get <em>editing guidance</em><br>built for your brand.</h1>
+    <p class="section-desc">Upload your photo, describe what you're going for. The tool checks what's trending right now and tells you exactly what to adjust — in the language of your editing app.</p>
+
+    <details class="howto" id="howto-edit" open>
+      <summary>How this works</summary>
+      <div class="howto-body">
+        <ol>
+          <li>Drop in a photo (any format — straight from your phone is fine).</li>
+          <li>Type what you're going for, or leave it blank and let it read the image.</li>
+          <li>Tap <strong>Analyze &amp; Guide My Edit</strong>. You'll get exact adjustments in your editing app's words, plus a brand-fit score.</li>
+          <li>When the photo's ready, tap <strong>create listing</strong> to carry it to the next tab.</li>
+        </ol>
+      </div>
+    </details>
+
+    <!-- Upload -->
+    <div class="upload-area" id="edit-upload-area">
+      <input type="file" accept="image/*" id="edit-file-input" onchange="handleEditUpload(event)">
+      <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <path d="M21 15l-5-5L5 21"/>
+      </svg>
+      <div class="upload-title">Drop your photo here</div>
+      <div class="upload-sub">or click to browse — JPEG, PNG, HEIC</div>
+    </div>
+
+    <!-- Vision -->
+    <div class="field">
+      <label for="edit-vision">What are you going for?</label>
+      <textarea class="field-input" id="edit-vision" placeholder="e.g. I want it to feel warm and dreamy — the fog is important, the horses should be the focus. Not sure if the colors are too muted or if I should push the warmth more…"></textarea>
+    </div>
+
+    <!-- Stage + Location -->
+    <div class="two-col">
+      <div class="field">
+        <label>Photo stage</label>
+        <div class="select-wrap">
+          <select id="edit-stage">
+            <option value="raw unedited">Raw / unedited</option>
+            <option value="in progress">In progress — mid edit</option>
+            <option value="nearly finished">Nearly finished</option>
+            <option value="finished — final review">Final review</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Location</label>
+        <div class="select-wrap" id="edit-loc-wrap">
+          <select id="edit-loc" onchange="toggleEditCustomLoc(this)">
+            <option value="Iceland">Iceland</option>
+            <option value="Florida">Florida</option>
+            <option value="Colorado">Colorado</option>
+            <option value="Utah">Utah</option>
+            <option value="the Southwest">Southwest USA</option>
+            <option value="unspecified location">No specific location</option>
+            <option value="__custom__">Other…</option>
+          </select>
+        </div>
+        <input type="text" class="field-input" id="edit-loc-custom"
+          placeholder="Type location…"
+          style="display:none;margin-top:.5rem">
+      </div>
+    </div>
+
+    <button class="primary-btn" id="edit-btn" onclick="runEditGuidance()">
+      <span id="edit-btn-label">Analyze & Guide My Edit</span>
+      <div class="progress-bar" id="edit-progress"></div>
+    </button>
+    <div class="status-line" id="edit-status"></div>
+    <div class="error-msg" id="edit-error"></div>
+
+    <!-- Edit Results -->
+    <div id="edit-result-area"></div>
+
+  </div>
+
+  <!-- ══════════════════════════════════
+       TAB 2 — LISTINGS
+  ══════════════════════════════════ -->
+  <div class="panel" id="panel-list">
+
+    <div class="section-eyebrow">Step 2</div>
+    <h1 class="section-title">Turn your photos into<br><em>ready-to-post listings.</em></h1>
+    <p class="section-desc">Add up to 8 photos. Each one gets an optimized Etsy title, 13 tags, a full description in your voice, a suggested price, and ready-to-paste Instagram and Pinterest captions — all informed by what's trending right now.</p>
+
+    <details class="howto" id="howto-list" open>
+      <summary>How this works</summary>
+      <div class="howto-body">
+        <ol>
+          <li>Add a photo to each slot. It doesn't have to be a print — your dogs, garden, or a behind-the-scenes shot all work.</li>
+          <li>Pick the <strong>post type</strong>: 📦 Product (full Etsy listing + captions), 🐾 Personal (warm caption, no sales pitch), or 🏡 Lifestyle (styled shot with a soft shop nod).</li>
+          <li>Tap <strong>Generate All Listings</strong>. You'll get copy you can edit, plus a 🎬 <strong>Reel recipe</strong> for each — a simple plan you can make in CapCut or Instagram.</li>
+          <li>Copy what you need. Products go to Etsy; captions go into your scheduler (Metricool). Everything saves automatically.</li>
+        </ol>
+      </div>
+    </details>
+
+    <div class="slots-grid" id="slots-grid"></div>
+
+    <div style="display:flex;gap:.7rem;margin-bottom:1.8rem">
+      <button class="add-slot-btn" id="add-slot-btn" onclick="addSlot()" style="margin-bottom:0;flex:1">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <path d="M6.5 1v11M1 6.5h11"/>
+        </svg>
+        Add another photo
+      </button>
+      <button onclick="resetAllSlots()" style="
+        background:none;border:1.5px solid var(--fog);border-radius:6px;
+        padding:.9rem 1.2rem;cursor:pointer;color:var(--stone);
+        font-family:'Jost',sans-serif;font-size:.78rem;letter-spacing:.08em;
+        text-transform:uppercase;white-space:nowrap;
+        transition:border-color .2s,color .2s;
+      " onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+         onmouseout="this.style.borderColor='var(--fog)';this.style.color='var(--stone)'">
+        Reset All
+      </button>
+    </div>
+
+    <button class="primary-btn" id="list-btn" onclick="generateAll()">
+      <span id="list-btn-label">Generate All Listings</span>
+      <div class="progress-bar" id="list-progress"></div>
+    </button>
+    <div class="status-line" id="list-status"></div>
+    <div class="error-msg" id="list-error"></div>
+
+    <div id="results-section" style="display:none;margin-top:2.5rem">
+      <div class="results-title">Your Listings</div>
+      <div id="results-container"></div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════
+       TAB 3 — SHOP AUDIT
+  ══════════════════════════════════ -->
+  <div class="panel" id="panel-audit">
+
+    <div class="section-eyebrow">Shop Health</div>
+    <h1 class="section-title">Audit your <em>existing listings</em><br>against today's trends.</h1>
+    <p class="section-desc">Export your listings from Etsy as a CSV and drop it here. The tool checks every listing against current search trends and tells you exactly what to update and why — prioritized by impact.</p>
+
+    <details class="howto" id="howto-audit" open>
+      <summary>How this works</summary>
+      <div class="howto-body">
+        <ol>
+          <li>On a computer, download your listings CSV from Etsy (the guide link is in the box below).</li>
+          <li>Drop that file here.</li>
+          <li>Tap <strong>Audit My Shop</strong>. You'll get a prioritized list of what to fix first and why, based on what's trending now.</li>
+        </ol>
+      </div>
+    </details>
+
+    <div style="background:var(--white);border:1px solid var(--fog);border-radius:6px;padding:1.4rem 1.8rem;margin-bottom:1.5rem;box-shadow:0 2px 12px var(--shadow)">
+      <div class="section-eyebrow" style="margin-bottom:.5rem">How to export from Etsy</div>
+      <ol style="font-size:.85rem;color:var(--stone);line-height:1.9;padding-left:1.2rem">
+        <li>On a computer, open <strong style="color:var(--bark)">Etsy → Shop Manager → Settings → Options</strong></li>
+        <li>Click the <strong style="color:var(--bark)">Download Data</strong> tab</li>
+        <li>Under <strong style="color:var(--bark)">"Currently for Sale Listings,"</strong> click <strong style="color:var(--bark)">Download CSV</strong></li>
+        <li>Drop that file in the box below <span style="opacity:.8">(note: only active listings export — drafts won't be included)</span></li>
+      </ol>
+      <p style="font-size:.8rem;margin-top:.7rem"><a href="https://help.etsy.com/hc/en-us/articles/360000343508-How-to-Download-Your-Listing-Information" target="_blank" rel="noopener" style="color:var(--moss);text-decoration:none;font-weight:500">Open Etsy's official export guide →</a> <span style="color:var(--stone)">(Etsy keeps this page current)</span></p>
+    </div>
+
+    <!-- CSV Upload -->
+    <div class="upload-area" id="audit-upload-area" style="margin-bottom:1.5rem">
+      <input type="file" accept=".csv,text/csv" id="audit-file-input" onchange="handleCsvUpload(event)">
+      <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      <div class="upload-title">Drop your Etsy CSV here</div>
+      <div class="upload-sub">or click to browse</div>
+    </div>
+
+    <div id="audit-preview" style="display:none;margin-bottom:1.2rem">
+      <div style="background:var(--parch);border:1px solid var(--fog);border-radius:4px;padding:.8rem 1.1rem;font-size:.83rem;color:var(--bark);display:flex;align-items:center;gap:.6rem">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg>
+        <span id="audit-preview-text">CSV loaded</span>
+      </div>
+    </div>
+
+    <button class="primary-btn" id="audit-btn" onclick="runAudit()">
+      <span id="audit-btn-label">Audit My Shop</span>
+      <div class="progress-bar" id="audit-progress"></div>
+    </button>
+    <div class="status-line" id="audit-status"></div>
+    <div class="error-msg" id="audit-error"></div>
+
+    <div id="audit-results" style="display:none;margin-top:2.5rem">
+      <div class="results-title">Audit Results</div>
+      <div id="audit-results-container"></div>
+    </div>
+
+  </div>
+
+</main>
+
+<footer style="max-width:1040px;margin:0 auto;padding:0 2.5rem 2.5rem;text-align:center">
+  <span id="build-stamp" style="font-size:.68rem;letter-spacing:.08em;color:var(--stone);opacity:.7"></span>
+</footer>
+
+<script>
+// ============================================================
+//  Berkies & Bean Creative Studio
+//  Enter your Anthropic API key once in Settings (top right).
+//  It saves to this device only — no need to edit this file.
+// ============================================================
+
+// ── SAFE STORAGE (Safari Private Mode can throw on localStorage) ──
+function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+function lsSet(k,v){ try { localStorage.setItem(k,v); return true; } catch(e){ return false; } }
+
+// ============================================================
+//  CONFIG — the ONE place a human might ever need to look.
+//  Everything else keeps itself current: trend + price research
+//  runs live on every use, and the model auto-detects the newest
+//  version. Use the "Check tool health" button in Settings to
+//  confirm nothing on Etsy's side has changed.
+// ============================================================
+const CONFIG = {
+  // Fallback model — used only until the app auto-detects the latest Sonnet.
+  modelFallback: 'claude-sonnet-4-6',
+
+  // Etsy's own (always-current) guide for exporting listings.
+  etsyHelpUrl: 'https://help.etsy.com/hc/en-us/articles/360000343508-How-to-Download-Your-Listing-Information',
+
+  // Sanity price bounds (USD). The tool researches CURRENT prices live on
+  // every run; these only keep anything absurd from slipping through.
+  priceGuardrails: { digitalMin: 5, digitalMax: 20, setMin: 12, setMax: 45, canvasMin: 30, canvasMax: 80 },
+
+  // Locations offered in the Listings tab dropdowns.
+  locations: ['Iceland','Florida','Colorado','Utah','the Southwest'],
+
+  // Print quality thresholds (pixels per inch). minPPI is Devin's hard floor —
+  // the tool never recommends a print size below this. premiumPPI is the
+  // "gallery" mark used to pick the featured example size.
+  minPPI: 200,
+  premiumPPI: 300,
+
+  // Shown in the footer so Devin can confirm she's on the latest version.
+  // Bump these each time a new file is deployed.
+  version: 'v1.2.1',
+  updated: 'Oct 20, 2026'
+};
+
+let API_KEY = lsGet('bb_api_key') || 'PASTE-YOUR-API-KEY-HERE';
+
+// Current year — keeps trend research from going stale in future years
+const CURRENT_YEAR = new Date().getFullYear();
+
+// ── VISION PERSISTENCE ──
+function saveVision() {
+  const val = document.getElementById('edit-vision')?.value || '';
+  lsSet('bb_vision_draft', val);
+}
+function loadVision() {
+  const saved = lsGet('bb_vision_draft');
+  const el = document.getElementById('edit-vision');
+  if (saved && el && !el.value) {
+    el.value = saved;
+    el.style.borderColor = 'var(--gold)';
+    setTimeout(() => { el.style.borderColor = ''; }, 2000);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const visionEl = document.getElementById('edit-vision');
+  if (visionEl) {
+    visionEl.addEventListener('input', saveVision);
+    loadVision();
+  }
+  // Show "key saved" note if one exists
+  if (API_KEY && API_KEY.startsWith('sk-')) {
+    const ks = document.getElementById('key-status');
+    if (ks) ks.style.display = 'block';
+  }
+  // Bring back any listings she generated previously
+  loadListings();
+
+  // Show the build stamp so she can confirm she's on the latest version
+  const stamp = document.getElementById('build-stamp');
+  if (stamp) stamp.textContent = `Berkies & Bean Creative Studio · ${CONFIG.version} · updated ${CONFIG.updated}`;
+
+  // Inline help: remember whether she's collapsed each "How this works"
+  document.querySelectorAll('details.howto').forEach(d => {
+    const key = 'bb_howto_' + d.id;
+    const saved = lsGet(key);
+    if (saved === 'closed') d.open = false;
+    else if (saved === 'open') d.open = true;
+    d.addEventListener('toggle', () => lsSet(key, d.open ? 'open' : 'closed'));
+  });
+});
+
+// ── OTHER SOFTWARE TOGGLE ──
+function toggleCustomSoftware(sel) {
+  const custom = document.getElementById('setting-software-custom');
+  if (!custom) return;
+  custom.style.display = sel.value === '__other__' ? 'block' : 'none';
+  if (sel.value === '__other__') custom.focus();
+}
+function getSoftware() {
+  const sel = document.getElementById('setting-software');
+  if (sel?.value === '__other__') {
+    return document.getElementById('setting-software-custom')?.value.trim() || 'your editing app';
+  }
+  return sel?.value || '';
+}
+
+// ── RESET ALL SLOTS ──
+function resetAllSlots() {
+  if (!confirm('Clear all photos and start fresh?')) return;
+  slots = [];
+  slotId = 0;
+  generatedListings = [];
+  try { localStorage.removeItem('bb_listings'); } catch (e) {}
+  document.getElementById('slots-grid').innerHTML = '';
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('results-container').innerHTML = '';
+  document.getElementById('list-status').textContent = '';
+  document.getElementById('add-slot-btn').style.display = 'flex';
+  document.getElementById('listing-badge').classList.remove('visible');
+  addSlot(); addSlot(); addSlot();
+}
+
+// ── CSV AUDIT ──
+let auditListings = [];
+
+function handleCsvUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onerror = () => showAuditError('Could not read that file. Make sure it is the CSV downloaded from Etsy.');
+  reader.onload = (ev) => {
+    const text = ev.target.result;
+    try {
+      auditListings = parseCsv(text);
+    } catch(err) {
+      showAuditError('That file could not be read as a CSV. Re-download it from Etsy and try again.');
+      console.error(err);
+      return;
+    }
+    if (auditListings.length === 0) {
+      showAuditError('No listings found in that file. Make sure you exported "Currently for Sale Listings" from Etsy.');
+      return;
+    }
+    const area = document.getElementById('audit-upload-area');
+    area.classList.add('has-image');
+    area.innerHTML = `
+      <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="color:var(--moss)">
+        <path d="M9 11l3 3L22 4"/>
+      </svg>
+      <div class="upload-title" style="color:var(--moss)">${esc(file.name)}</div>
+      <div class="upload-sub">${auditListings.length} listings loaded</div>
+    `;
+    document.getElementById('audit-preview').style.display = 'block';
+    document.getElementById('audit-preview-text').textContent =
+      `${auditListings.length} listings ready to audit`;
+    document.getElementById('audit-error').style.display = 'none';
+  };
+  reader.readAsText(file);
+}
+
+// Robust RFC-4180 CSV parser.
+// Handles quoted fields with embedded commas, embedded newlines,
+// escaped double-quotes (""), \r\n line endings, and empty fields —
+// all of which appear in real Etsy listing exports (descriptions & tags).
+function parseCsv(text) {
+  text = String(text || '').replace(/^\uFEFF/, ''); // strip BOM
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; } // escaped quote
+        else { inQuotes = false; }
+      } else {
+        field += c;
+      }
+    } else {
+      if (c === '"') {
+        inQuotes = true;
+      } else if (c === ',') {
+        row.push(field); field = '';
+      } else if (c === '\n') {
+        row.push(field); field = '';
+        rows.push(row); row = [];
+      } else if (c === '\r') {
+        // ignore — newline handles end of row
+      } else {
+        field += c;
+      }
+    }
+  }
+  // flush trailing field/row (file with no final newline)
+  if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+  if (rows.length < 2) return [];
+
+  const headers = rows[0].map(h => h.replace(/^\uFEFF/, '').trim().toLowerCase());
+  const records = rows.slice(1).map(cells => {
+    const obj = {};
+    headers.forEach((h, idx) => { obj[h] = (cells[idx] || '').trim(); });
+    return obj;
+  });
+
+  // Etsy's listing export header is "TITLE"; keep rows that actually have one
+  return records.filter(r => r.title || r['listing title'] || r['listing_title']);
+}
+
+function getField(row, names) {
+  for (const n of names) {
+    if (row[n] !== undefined && row[n] !== '') return row[n];
+  }
+  return '';
+}
+
+async function runAudit() {
+  if (!API_KEY.startsWith('sk-')) {
+    showAuditError('No API key set yet. Open Settings (top right) and paste your key.');
+    return;
+  }
+  if (auditListings.length === 0) {
+    showAuditError('Please upload your Etsy CSV first.');
+    return;
+  }
+
+  const btn = document.getElementById('audit-btn');
+  const label = document.getElementById('audit-btn-label');
+  const bar = document.getElementById('audit-progress');
+  const status = document.getElementById('audit-status');
+  const errEl = document.getElementById('audit-error');
+
+  btn.disabled = true;
+  label.textContent = `Auditing ${auditListings.length} listings…`;
+  bar.style.width = '0%';
+  errEl.style.display = 'none';
+  status.textContent = 'Checking current trends…';
+
+  let prog = 0;
+  const pi = setInterval(() => { prog = Math.min(prog + Math.random()*5, 60); bar.style.width = prog+'%'; }, 500);
+
+  const all = auditListings.slice(0, 96); // safety cap for very large shops
+  const groups = chunk(all, 12);
+  const fmt = (l, n) => {
+    const title = getField(l, ['title','listing title','listing_title']) || 'Unknown';
+    const tags = getField(l, ['tags','tag']);
+    const price = getField(l, ['price','listing price','listing_price']);
+    return `${n}. Title: "${title}" | Tags: ${tags} | Price: $${price}`;
+  };
+  const baseBrand = `You are an Etsy shop analyst for Berkies & Bean, a nature photography shop by Devin.\n\n${BRAND_IDENTITY}`;
+
+  try {
+    let shop = null;            // shop-level fields from the first (research) batch
+    let allUpdates = [];
+    let offset = 0;
+
+    for (let g = 0; g < groups.length; g++) {
+      clearInterval(pi);
+      const group = groups[g];
+      const startNum = offset + 1, endNum = offset + group.length;
+      status.textContent = g === 0 ? 'Researching current trends…' : `Analyzing listings ${startNum}–${endNum} of ${all.length}…`;
+      const listText = group.map((l, idx) => fmt(l, offset + idx + 1)).join('\n');
+
+      let system, messages, tools = [];
+      if (g === 0) {
+        tools = [{ type: 'web_search_20250305', name: 'web_search' }];
+        system = `${baseBrand}
+
+Use web_search to research current (${CURRENT_YEAR}) trends: trending Etsy nature/wall-art searches, Pinterest home-decor aesthetics, and pricing benchmarks for digital photography prints.
+
+Then assess the shop and analyze the listings below. Return ONLY a raw JSON object:
+{
+  "summary": "2-3 sentence overall health assessment of the shop",
+  "trend_context": "what is trending right now that's relevant to this shop",
+  "pricing_note": "overall pricing assessment — under or over market?",
+  "quick_wins": ["3-5 shop-wide immediate actions"],
+  "priority_updates": [{ "listing_number": 1, "title": "...", "issue": "...", "recommendation": "...", "impact": "high|medium|low", "reason": "..." }]
+}
+Only include priority_updates for listings that genuinely need changes. Keep issue/recommendation/reason to ONE short sentence each. Return ONLY raw JSON.`;
+        messages = [{ role: 'user', content: `Research trends, assess the shop, and analyze these listings:\n\n${listText}` }];
+      } else {
+        system = `${baseBrand}
+
+Current market context to apply (already researched):
+TRENDS: ${(shop && shop.trend_context) || ''}
+PRICING: ${(shop && shop.pricing_note) || ''}
+
+Analyze ONLY the listings below against that context and the brand. Return ONLY a raw JSON object:
+{ "priority_updates": [{ "listing_number": 1, "title": "...", "issue": "...", "recommendation": "...", "impact": "high|medium|low", "reason": "..." }] }
+Only include listings that genuinely need changes. Keep issue/recommendation/reason to ONE short sentence each. Return ONLY raw JSON.`;
+        messages = [{ role: 'user', content: `Analyze these listings:\n\n${listText}` }];
+      }
+
+      const text = await callClaude(system, messages, {
+        tools, max_tokens: 6000,
+        onTool: () => { status.textContent = 'Researching current Etsy trends…'; }
+      });
+      const parsed = extractJsonObject(text);
+      if (g === 0) shop = parsed;
+      if (Array.isArray(parsed.priority_updates)) allUpdates = allUpdates.concat(parsed.priority_updates);
+
+      offset += group.length;
+      bar.style.width = Math.round((offset / all.length) * 100) + '%';
+    }
+
+    bar.style.width = '100%';
+    const merged = sortByImpact(allUpdates);
+    renderAudit({
+      summary: (shop && shop.summary) || '',
+      trend_context: (shop && shop.trend_context) || '',
+      pricing_note: (shop && shop.pricing_note) || '',
+      quick_wins: (shop && shop.quick_wins) || [],
+      priority_updates: merged
+    });
+    const more = auditListings.length > all.length ? ` (first ${all.length} of ${auditListings.length})` : '';
+    status.textContent = `Audit complete — ${merged.length} update${merged.length === 1 ? '' : 's'} across ${all.length} listings${more}.`;
+
+  } catch(err) {
+    clearInterval(pi);
+    const msg = /JSON|token|Unexpected|position|No JSON/i.test(err.message || '')
+      ? 'Part of the audit came back unreadable. Please run it again.'
+      : 'Something went wrong talking to the API: ' + (err.message || 'unknown error') + '. Check your key and connection, then try again.';
+    showAuditError(msg);
+    status.textContent = ''; console.error(err);
+  } finally {
+    clearInterval(pi);
+    setTimeout(() => { btn.disabled = false; label.textContent = 'Audit My Shop'; bar.style.width = '0%'; }, 600);
+  }
+}
+
+function renderAudit(r) {
+  const section = document.getElementById('audit-results');
+  const container = document.getElementById('audit-results-container');
+  section.style.display = 'block';
+
+  const impactColor = { high: '#a83232', medium: '#b07d2e', low: '#3a4f35' };
+  const impactBg = { high: '#fdf0ee', medium: '#fdf6ee', low: '#f0f4f0' };
+
+  const updatesHtml = (r.priority_updates || []).map(u => `
+    <div style="background:var(--white);border:1px solid var(--fog);border-radius:6px;overflow:hidden;margin-bottom:1rem;box-shadow:0 2px 12px var(--shadow)">
+      <div style="padding:.7rem 1.2rem;background:${impactBg[u.impact]||'var(--parch)'};border-bottom:1px solid var(--fog);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:.85rem;font-weight:500;color:var(--bark)">${esc(u.title||'')}</div>
+        <span style="font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:${impactColor[u.impact]||'var(--stone)'};font-weight:500;background:white;border-radius:10px;padding:.15rem .6rem;border:1px solid currentColor">${esc(u.impact||'medium')} impact</span>
+      </div>
+      <div style="padding:1rem 1.2rem">
+        <div style="font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--stone);margin-bottom:.3rem">Issue</div>
+        <div style="font-size:.87rem;color:var(--ink);margin-bottom:.9rem">${esc(u.issue||'')}</div>
+        <div style="font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--moss);margin-bottom:.3rem">Recommendation</div>
+        <div style="font-size:.87rem;color:var(--ink);margin-bottom:.9rem;padding:.7rem .9rem;background:var(--parch);border-radius:4px;border-left:3px solid var(--moss)">${esc(u.recommendation||'')}</div>
+        <div style="font-size:.78rem;color:var(--stone);font-style:italic">${esc(u.reason||'')}</div>
+      </div>
+    </div>
+  `).join('');
+
+  const quickWinsHtml = (r.quick_wins || []).map(w =>
+    `<li style="display:flex;gap:.6rem;font-size:.87rem;line-height:1.6;color:var(--ink);margin-bottom:.5rem"><span style="color:var(--gold);font-weight:500;flex-shrink:0">→</span>${esc(w)}</li>`
+  ).join('');
+
+  container.innerHTML = `
+    <div style="background:var(--white);border:1px solid var(--fog);border-radius:6px;padding:1.4rem 1.8rem;margin-bottom:1.5rem;box-shadow:0 2px 12px var(--shadow)">
+      <div style="font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem">Overall Assessment</div>
+      <div style="font-size:.95rem;line-height:1.7;color:var(--ink);margin-bottom:.9rem">${esc(r.summary||'')}</div>
+      <div style="font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--stone);margin-bottom:.3rem">What's trending now</div>
+      <div style="font-size:.85rem;color:var(--stone);font-style:italic;line-height:1.6">${esc(r.trend_context||'')}</div>
+    </div>
+
+    <div style="background:var(--parch);border:1px solid var(--fog);border-radius:6px;padding:1.2rem 1.6rem;margin-bottom:1.5rem">
+      <div style="font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--moss);margin-bottom:.6rem">Quick wins for the whole shop</div>
+      <ul style="list-style:none;padding:0">${quickWinsHtml}</ul>
+    </div>
+
+    ${r.pricing_note ? `<div style="background:var(--white);border:1px solid var(--fog);border-radius:6px;padding:1rem 1.4rem;margin-bottom:1.5rem;font-size:.87rem;color:var(--ink);line-height:1.65">
+      <span style="font-weight:500;color:var(--bark)">Pricing: </span>${esc(r.pricing_note)}
+    </div>` : ''}
+
+    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:300;color:var(--bark);margin-bottom:1rem">Priority updates</div>
+    ${updatesHtml}
+  `;
+
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── ROBUST JSON PARSING (API responses can be cut off at the token limit) ──
+function salvageObjects(text) {
+  const start = text.indexOf('[');
+  const body = start >= 0 ? text.slice(start + 1) : text;
+  const objs = []; let depth = 0, inStr = false, esc = false, cur = '';
+  for (let i = 0; i < body.length; i++) {
+    const ch = body[i];
+    if (inStr) { cur += ch; if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') inStr = false; continue; }
+    if (ch === '"') { inStr = true; cur += ch; continue; }
+    if (ch === '{') { depth++; cur += ch; continue; }
+    if (ch === '}') { depth--; cur += ch; if (depth === 0) { try { objs.push(JSON.parse(cur.trim())); } catch (e) {} cur = ''; } continue; }
+    if (depth > 0) cur += ch;
+  }
+  return objs;
+}
+function repairJson(s) {
+  let inStr = false, esc = false; const stack = [];
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (inStr) { if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') inStr = false; continue; }
+    if (ch === '"') inStr = true;
+    else if (ch === '{' || ch === '[') stack.push(ch);
+    else if (ch === '}') { if (stack[stack.length - 1] === '{') stack.pop(); }
+    else if (ch === ']') { if (stack[stack.length - 1] === '[') stack.pop(); }
+  }
+  let out = s;
+  if (inStr) out += '"';
+  out = out.replace(/,\s*$/, '');
+  while (stack.length) { out += (stack.pop() === '{' ? '}' : ']'); }
+  return out;
+}
+function extractJsonObject(text) {
+  const s = String(text || '').replace(/```json|```/g, '').trim();
+  const a = s.indexOf('{');
+  if (a < 0) throw new Error('No JSON object in response');
+  const b = s.lastIndexOf('}') + 1;
+  try { return JSON.parse(s.slice(a, b > a ? b : undefined)); }
+  catch (e) { return JSON.parse(repairJson(s.slice(a))); }
+}
+function extractJsonArray(text) {
+  const s = String(text || '').replace(/```json|```/g, '').trim();
+  const a = s.indexOf('[');
+  if (a < 0) throw new Error('No JSON array in response');
+  const b = s.lastIndexOf(']') + 1;
+  try { return JSON.parse(s.slice(a, b > a ? b : undefined)); }
+  catch (e) {
+    const objs = salvageObjects(s.slice(a));
+    if (objs.length) return objs;
+    throw e;
+  }
+}
+
+// Split an array into chunks of a given size
+function chunk(arr, size) {
+  const out = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+// Sort audit updates high → medium → low
+function sortByImpact(updates) {
+  const rank = { high: 0, medium: 1, low: 2 };
+  return [...updates].sort((a, b) => (rank[a.impact] ?? 1) - (rank[b.impact] ?? 1));
+}
+// One Claude call with the tool-use/pause loop handled. Returns final text.
+async function callClaude(system, messages, opts) {
+  opts = opts || {};
+  const tools = opts.tools || [];
+  const max_tokens = opts.max_tokens || 4000;
+  let finalText = ''; let turns = 0;
+  while (turns < 8) {
+    turns++;
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: CURRENT_MODEL, max_tokens, system, tools, messages })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    if (opts.onTool && data.content && data.content.some(b => b.type === 'server_tool_use' || b.type === 'tool_use')) opts.onTool();
+    messages.push({ role: 'assistant', content: data.content });
+    if (data.stop_reason === 'pause_turn') continue;
+    if (data.stop_reason === 'tool_use') {
+      const results = data.content.filter(b => b.type === 'tool_use').map(b => ({ type: 'tool_result', tool_use_id: b.id, content: `Search done: "${b.input?.query}"` }));
+      messages.push({ role: 'user', content: results });
+    } else {
+      finalText = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+      break;
+    }
+  }
+  return finalText;
+}
+
+function showAuditError(msg) {
+  const el = document.getElementById('audit-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function saveApiKey() {
+  const input = document.getElementById('key-input');
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val.startsWith('sk-')) {
+    alert('That key doesn\'t look right — it should start with sk-ant-');
+    return;
+  }
+  const ok = lsSet('bb_api_key', val);
+  API_KEY = val;
+  input.value = '';
+  const banner = document.getElementById('setup-banner');
+  banner.textContent = ok ? 'API key saved to this browser.' : 'Key set for this session (private browsing won\'t remember it).';
+  banner.style.display = 'block';
+  setTimeout(() => { banner.style.display = 'none'; }, 3000);
+  const ks = document.getElementById('key-status');
+  if (ks) ks.style.display = 'block';
+  document.getElementById('settings-drawer').classList.remove('open');
+  fetchLatestModel();
+}
+
+// ============================================================
+
+// Compress + ALWAYS re-encode to JPEG before sending to the API.
+// This is critical on iPad: photos are HEIC, which the API does not
+// accept. Drawing to a canvas and exporting as JPEG converts them and
+// also guarantees the media_type we send is truthful.
+function compressImage(file, callback) {
+  const maxBytes = 4.5 * 1024 * 1024; // safe limit under the API's 5MB
+  // trail records what actually happened, so a failure can say WHY instead of a generic message
+  const trail = [`file ${(file.size / 1048576).toFixed(1)}MB ${file.type || 'no-type'}`];
+  const fail = (msg) => alert(`${msg}\n\n[${trail.join(' > ')}]`);
+  const reader = new FileReader();
+  reader.onerror = () => {
+    trail.push('read-error:' + ((reader.error && reader.error.name) || 'unknown'));
+    fail('Could not read that image. Try a different photo.');
+  };
+  reader.onload = (ev) => {
+    trail.push('read-ok');
+    const img = new Image();
+    img.onerror = () => {
+      trail.push('decode-failed');
+      fail('That image could not be opened on this device. If it is HEIC, try sharing it as JPEG, or use a PNG/JPEG.');
+    };
+    img.onload = () => {
+      let result = null;
+      try {
+        const w0 = img.naturalWidth || img.width, h0 = img.naturalHeight || img.height;
+        trail.push(`decoded ${w0}x${h0}`);
+        let scale = 1;
+        const maxEdge = 2400; // plenty of detail for analysis, keeps payload small
+        const longest = Math.max(img.width, img.height);
+        if (longest > maxEdge) scale = maxEdge / longest;
+        if (file.size > maxBytes) scale = Math.min(scale, Math.sqrt(maxBytes / file.size) * 0.92);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.floor(img.width * scale));
+        canvas.height = Math.max(1, Math.floor(img.height * scale));
+        trail.push(`canvas ${canvas.width}x${canvas.height}`);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('no-2d-context');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        let quality = 0.85;
+        let dataUrl = canvas.toDataURL('image/jpeg', quality);
+        // Step quality down if still too big (base64 length * 0.75 ≈ bytes)
+        while (dataUrl.length * 0.75 > maxBytes && quality > 0.4) {
+          quality -= 0.1;
+          dataUrl = canvas.toDataURL('image/jpeg', quality);
+        }
+        // A canvas the browser refused to render comes back as an empty data URL
+        if (!dataUrl || dataUrl.length < 100) throw new Error('canvas-returned-empty');
+        trail.push(`encoded q${quality.toFixed(2)}`);
+        // meta carries the ORIGINAL (pre-shrink) dimensions + file size for accurate print-size math
+        const meta = { w: w0, h: h0, bytes: file.size };
+        result = [dataUrl, dataUrl.split(',')[1], 'image/jpeg', meta];
+      } catch (err) {
+        trail.push('exception:' + ((err && err.name) || 'Error') + ':' + ((err && err.message) || ''));
+        fail('That image could not be processed on this device.');
+        return;
+      }
+      callback(...result);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── PRINT SIZE MATH (deterministic, from the real pixel dimensions) ──
+const FRAME_SIZES = [ // common print/frame sizes in inches (long x short)
+  [10,8],[14,11],[18,12],[20,16],[24,16],[24,18],[30,20],[36,24],[45,30],[60,40]
+];
+function computePrintOptions(w, h) {
+  if (!w || !h) return null;
+  const long = Math.max(w, h), short = Math.min(w, h);
+  const floor = CONFIG.minPPI, premium = CONFIG.premiumPPI;
+  const opts = [];
+  for (const [L, S] of FRAME_SIZES) {
+    // PPI this file would deliver at that print size (limited by the tighter dimension)
+    const ppi = Math.min(long / L, short / S);
+    if (ppi >= floor) {
+      opts.push({ label: `${L}×${S} in`, L, S, ppi: Math.round(ppi), tier: ppi >= premium ? 'gallery' : 'good' });
+    }
+  }
+  // Too low-resolution to hit her floor at even the smallest standard size
+  if (opts.length === 0) return { opts: [], tooLow: true, floor, w, h };
+  // default max = the LARGEST size still at/above her floor (her allowable ceiling)
+  const defaultMax = opts[opts.length - 1];
+  // featured example = largest size that's gallery-grade (>= premium PPI), else a mid option
+  const galleryOpts = opts.filter(o => o.tier === 'gallery');
+  const example = galleryOpts[galleryOpts.length - 1] || opts[Math.floor(opts.length / 2)] || defaultMax;
+  return { opts, defaultMax, example, floor, w, h };
+}
+
+// Flag only what's measurable: a file with very little data for its pixel count
+// may have been heavily compressed or upscaled and could look soft when printed big.
+function compressionFlag(w, h, bytes) {
+  if (!w || !h || !bytes) return '';
+  const mp = (w * h) / 1e6;
+  if (mp < 0.1) return '';
+  const kbPerMP = (bytes / 1024) / mp;
+  if (kbPerMP < 120) return 'Heads-up: this file holds relatively little detail for its size — it may have been compressed or enlarged. Check it at full size before promising a large print.';
+  return '';
+}
+
+function buildPrintNote(maxLabel, exampleLabel, format) {
+  const fmt = format || 'high-resolution JPEG';
+  let s = `High-resolution digital download (${fmt}). `;
+  if (exampleLabel && exampleLabel !== maxLabel) s += `Looks beautiful at ${exampleLabel}, and prints crisply up to ${maxLabel}. `;
+  else if (maxLabel) s += `Prints crisply up to ${maxLabel}. `;
+  s += `This is a digital file — nothing physical ships.`;
+  return s;
+}
+
+// Auto-fetch latest Claude Sonnet model — no manual updates needed
+let CURRENT_MODEL = CONFIG.modelFallback;
+
+async function fetchLatestModel() {
+  if (!API_KEY.startsWith('sk-')) return;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/models', {
+      headers: { 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }
+    });
+    const data = await res.json();
+    const sonnet = (data.data || [])
+      .filter(m => m.id && m.id.includes('claude-sonnet'))
+      .sort((a, b) => b.id.localeCompare(a.id));
+    if (sonnet.length > 0) {
+      CURRENT_MODEL = sonnet[0].id;
+      console.log('Model:', CURRENT_MODEL);
+    }
+  } catch(e) { console.log('Using default model:', CURRENT_MODEL); }
+}
+fetchLatestModel();
+
+// ── TOOL HEALTH CHECK — the tool audits itself against Etsy + current trends ──
+async function checkToolHealth() {
+  if (!API_KEY.startsWith('sk-')) { alert('Add your API key first (in Settings).'); return; }
+  const btn = document.getElementById('health-btn');
+  const out = document.getElementById('health-result');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Checking…';
+  out.style.display = 'block';
+  out.innerHTML = '<div style="font-size:.8rem;color:var(--stone);font-style:italic">Checking Etsy and current trends…</div>';
+
+  const sys = `You are a maintenance checker for an Etsy seller tool. Use web_search to verify, as of today, each item below. Then return ONLY a raw JSON object (no markdown).
+Check:
+1) Does Etsy still let sellers export "Currently for Sale Listings" as a CSV via Shop Manager > Settings > Options > Download Data? Have the steps changed?
+2) Have Etsy seller fees changed recently from roughly: 6.5% transaction + ~3% + $0.25 payment processing + $0.20 listing?
+3) Any change to the columns included in the listings CSV (title, description, price, tags, materials, image URLs)?
+4) Name 1-2 CURRENT trends in nature/landscape wall art worth knowing.
+Return ONLY:
+{"etsy_export":{"status":"ok|changed","note":"short plain note"},"etsy_fees":{"status":"ok|changed","note":"..."},"csv_format":{"status":"ok|changed","note":"..."},"trends":"...","overall":"one-line plain-English summary"}`;
+
+  const tools = [{ type: 'web_search_20250305', name: 'web_search' }];
+  const messages = [{ role: 'user', content: 'Run the tool health check now.' }];
+
+  try {
+    let finalText = ''; let turns = 0;
+    while (turns < 6) {
+      turns++;
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model: CURRENT_MODEL, max_tokens: 1500, system: sys, tools, messages })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      messages.push({ role: 'assistant', content: data.content });
+      if (data.stop_reason === 'pause_turn') { continue; }
+      if (data.stop_reason === 'tool_use') {
+        const r = data.content.filter(b => b.type === 'tool_use').map(b => ({
+          type: 'tool_result', tool_use_id: b.id, content: `Search done: "${b.input?.query}"`
+        }));
+        messages.push({ role: 'user', content: r });
+      } else {
+        finalText = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+        break;
+      }
+    }
+    const cleaned = finalText.replace(/```json|```/g, '').trim();
+    const jS = cleaned.indexOf('{'), jE = cleaned.lastIndexOf('}') + 1;
+    renderHealth(JSON.parse(cleaned.slice(jS, jE)));
+  } catch (err) {
+    out.innerHTML = '<div style="font-size:.8rem;color:var(--red)">Could not run the check. Verify your key and connection, then try again.</div>';
+    console.error(err);
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
+}
+
+function renderHealth(r) {
+  const out = document.getElementById('health-result');
+  const dot = s => `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${s === 'ok' ? 'var(--moss)' : 'var(--gold)'};margin-right:.5rem;flex-shrink:0;margin-top:.4rem"></span>`;
+  const row = (label, o) => `<div style="font-size:.8rem;color:var(--ink);margin-bottom:.5rem;line-height:1.5;display:flex">${dot(o && o.status)}<span><strong>${label}:</strong> ${esc((o && o.note) || '—')}</span></div>`;
+  out.innerHTML = `
+    <div style="background:var(--parch);border:1px solid var(--fog);border-radius:5px;padding:.9rem 1.1rem">
+      <div style="font-size:.85rem;color:var(--bark);font-weight:500;margin-bottom:.7rem">${esc(r.overall || 'Check complete')}</div>
+      ${row('Etsy export', r.etsy_export)}
+      ${row('Etsy fees', r.etsy_fees)}
+      ${row('CSV format', r.csv_format)}
+      <div style="font-size:.78rem;color:var(--stone);font-style:italic;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--fog)">Trends now: ${esc(r.trends || '')}</div>
+    </div>`;
+}
+
+// ── BRAND IDENTITY (core fingerprint + current market context) ──
+const BRAND_IDENTITY = `
+Berkies & Bean brand fingerprint:
+- Soft, slightly muted tones — never oversaturated or garish
+- Warm golden, rose-gold, and amber light — natural warmth, not orange
+- Moody atmospheric elements: fog, dusk, golden hour, texture
+- A sense of stillness, wandering, and emotional connection to nature
+- Nature as emotional experience, not just scenic backdrop
+- Iceland photography: dramatic, vast, ethereal — horses, black sand, lighthouses, cliffs
+- Florida photography: tropical, lush, coastal, light and airy
+- Colorado/Southwest: earthy, rustic, desert warmth
+- Overall: poetic, wanderer aesthetic — "lose the path, find yourself"
+
+Current market context (${CURRENT_YEAR}) — lean into this, don't fight the brand:
+- IMPORTANT: Treat your live web_search results as the source of truth for current trends and pricing. The notes below are background and may be dated — if your research says otherwise, trust the research.
+- "Moody / atmospheric landscape" and "ethereal / misty" aesthetics are strongly on-trend in home decor. Devin's fog and golden-hour work fits this perfectly — name it.
+- Buyers increasingly choose art for how it makes a room FEEL (calm, sanctuary, escape) rather than as a literal travel postcard. Emphasize mood and emotional story over "scenic photo of X."
+- Jewel-toned and earthy greens (jade, moss, forest) are in demand — natural fit for Iceland moss/water and Colorado tones.
+- Personal, meaningful narrative sells. Devin's real story (an Iceland trip tied to her mental health journey) is a genuine, on-trend brand differentiator.
+- Avoid sounding like generic mass-produced "printable wall art" — the edge is that these are real, felt photographs.
+`;
+
+// ── STATE ──
+let editImageData = null;
+let editImageType = null;
+let editImageDataUrl = null;
+let editImagePx = null;
+let carriedPhoto = null;
+let slots = [];
+let slotId = 0;
+let generatedListings = [];                                  // persists across refresh
+let lastUsedLocation = lsGet('bb_last_location') || 'Iceland'; // so she sets it once
+
+// ── TABS ──
+function switchTab(name) {
+  ['edit','list','audit'].forEach(t => {
+    document.getElementById('panel-' + t)?.classList.toggle('active', t === name);
+    document.getElementById('tab-' + t)?.classList.toggle('active', t === name);
+  });
+}
+
+// ── SETTINGS ──
+function toggleSettings() {
+  document.getElementById('settings-drawer').classList.toggle('open');
+}
+function getSetting(id) { return document.getElementById(id)?.value || ''; }
+
+// ── EDIT UPLOAD (now routed through compressImage → fixes HEIC on iPad) ──
+function handleEditUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const status = document.getElementById('edit-status');
+  if (status) status.textContent = 'Preparing photo…';
+  compressImage(file, (dataUrl, b64, mime, meta) => {
+    editImageDataUrl = dataUrl;
+    editImageData = b64;
+    editImageType = mime;
+    editImagePx = meta || null;
+    if (status) status.textContent = '';
+    const area = document.getElementById('edit-upload-area');
+    area.classList.add('has-image');
+    area.innerHTML = `
+      <img class="upload-preview" src="${editImageDataUrl}" alt="Your photo">
+      <button class="upload-change" onclick="resetEditPhoto(event)">Change photo</button>
+    `;
+  });
+}
+
+function resetEditPhoto(e) {
+  e.preventDefault(); e.stopPropagation();
+  editImageData = null; editImageType = null; editImageDataUrl = null;
+  const area = document.getElementById('edit-upload-area');
+  area.classList.remove('has-image');
+  area.innerHTML = `
+    <input type="file" accept="image/*" id="edit-file-input" onchange="handleEditUpload(event)">
+    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <circle cx="8.5" cy="8.5" r="1.5"/>
+      <path d="M21 15l-5-5L5 21"/>
+    </svg>
+    <div class="upload-title">Upload your photo</div>
+    <div class="upload-sub">JPEG, PNG, HEIC — any size</div>
+  `;
+  setupEditDragDrop();
+}
+
+function toggleEditCustomLoc(sel) {
+  const custom = document.getElementById('edit-loc-custom');
+  custom.style.display = sel.value === '__custom__' ? 'block' : 'none';
+  if (sel.value === '__custom__') custom.focus();
+}
+
+// ── EDIT GUIDANCE API CALL ──
+async function runEditGuidance() {
+  if (!API_KEY.startsWith('sk-')) {
+    showEditError('No API key set yet. Open Settings (top right) and paste your key — you only do this once.');
+    return;
+  }
+  if (!editImageData) {
+    showEditError('Please upload a photo first.');
+    return;
+  }
+
+  const vision = document.getElementById('edit-vision').value.trim();
+  const stage = document.getElementById('edit-stage').value;
+  const locSel = document.getElementById('edit-loc').value;
+  const locCustom = document.getElementById('edit-loc-custom').value.trim();
+  const location = locSel === '__custom__' ? (locCustom || 'unspecified') : locSel;
+  const software = getSoftware() || 'any editing app';
+  const skill = getSetting('setting-skill') || 'intermediate';
+
+  const btn = document.getElementById('edit-btn');
+  const label = document.getElementById('edit-btn-label');
+  const bar = document.getElementById('edit-progress');
+  const status = document.getElementById('edit-status');
+  const errEl = document.getElementById('edit-error');
+
+  btn.disabled = true;
+  label.textContent = 'Researching trends…';
+  bar.style.width = '0%';
+  errEl.style.display = 'none';
+  status.textContent = 'Checking what\'s performing right now…';
+  document.getElementById('edit-result-area').innerHTML = '';
+
+  let prog = 0;
+  const pi = setInterval(() => { prog = Math.min(prog + Math.random()*7, 85); bar.style.width = prog+'%'; }, 450);
+
+  const systemPrompt = `You are a creative director and photography editor for Berkies & Bean, a nature photography brand by Devin.
+
+${BRAND_IDENTITY}
+
+Your job is to analyze the uploaded photo and give Devin specific, actionable editing guidance that:
+1. Honors her creative vision (what she described)
+2. Stays true to the Berkies & Bean brand fingerprint above
+3. Is informed by current trends (use web_search to research what's performing on Pinterest and Etsy right now, in ${CURRENT_YEAR})
+4. Is written in plain language matched to her skill level: ${skill}
+5. Uses the specific controls and terminology of her editing app: ${software}
+
+If she has no editing app selected, recommend the best tool for her use case with a clear reason why.
+
+Return ONLY a raw JSON object (no markdown, no backticks):
+{
+  "brand_score": 4,
+  "brand_score_note": "One sentence on how well the current edit aligns with the Berkies & Bean aesthetic",
+  "what_is_working": "2-3 sentences on what already looks great",
+  "suggested_adjustments": [
+    "Specific adjustment 1 — use exact slider names from ${software}",
+    "Specific adjustment 2",
+    "Specific adjustment 3",
+    "Specific adjustment 4 (optional)"
+  ],
+  "trend_context": "2-3 sentences on what is trending right now in nature/landscape photography on Pinterest and Etsy, and how this photo fits or could better fit",
+  "tool_recommendations": [
+    { "name": "Tool name", "reason": "Why it suits her for this type of photo", "cost": "Free / $X/month" }
+  ],
+  "brand_note": "One sentence flagging anything in this photo that feels off-brand — or confirming it fits perfectly"
+}
+
+brand_score is 1-5 where 5 = perfectly on brand.
+Only include tool_recommendations if software is not set or a better tool exists for this photo type.`;
+
+  const userContent = [
+    { type: 'image', source: { type: 'base64', media_type: editImageType, data: editImageData } },
+    { type: 'text', text: `Photo stage: ${stage}. Location: ${location}. My vision: ${vision || 'Not described — use your best judgment from the image.'}` }
+  ];
+
+  const tools = [{ type: 'web_search_20250305', name: 'web_search' }];
+  const messages = [{ role: 'user', content: userContent }];
+
+  try {
+    let finalText = '';
+    let turns = 0;
+    while (turns < 6) {
+      turns++;
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model: CURRENT_MODEL, max_tokens: 2000, system: systemPrompt, tools, messages })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message || 'API error');
+
+      if (data.content?.some(b => b.type === 'server_tool_use' || b.type === 'tool_use')) status.textContent = 'Analyzing trends and your photo…';
+      messages.push({ role: 'assistant', content: data.content });
+
+      if (data.stop_reason === 'pause_turn') { continue; }
+      if (data.stop_reason === 'tool_use') {
+        const results = data.content.filter(b => b.type === 'tool_use').map(b => ({
+          type: 'tool_result', tool_use_id: b.id,
+          content: `Search completed for: "${b.input?.query}"`
+        }));
+        messages.push({ role: 'user', content: results });
+        status.textContent = 'Writing your guidance…';
+      } else {
+        finalText = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+        break;
+      }
+    }
+
+    clearInterval(pi); bar.style.width = '100%';
+    const cleaned = finalText.replace(/```json|```/g, '').trim();
+    const jStart = cleaned.indexOf('{'); const jEnd = cleaned.lastIndexOf('}') + 1;
+    const result = JSON.parse(cleaned.slice(jStart, jEnd));
+    renderEditResult(result);
+    status.textContent = 'Guidance ready.';
+
+  } catch(err) {
+    clearInterval(pi);
+    showEditError('Something went wrong talking to the API. Check your key and connection, then try again.');
+    status.textContent = '';
+    console.error(err);
+  } finally {
+    setTimeout(() => { btn.disabled = false; label.textContent = 'Analyze & Guide My Edit'; bar.style.width = '0%'; }, 500);
+  }
+}
+
+function renderEditResult(r) {
+  const area = document.getElementById('edit-result-area');
+
+  const score = Math.min(5, Math.max(1, r.brand_score || 3));
+  let dots = '';
+  for (let i = 1; i <= 5; i++) {
+    dots += `<div class="score-dot ${i <= score ? 'filled' : ''}"></div>`;
+  }
+
+  const adjustmentsHtml = (r.suggested_adjustments || [])
+    .map(a => `<li>${esc(a)}</li>`).join('');
+
+  const toolsHtml = (r.tool_recommendations || []).length > 0
+    ? (r.tool_recommendations || []).map(t =>
+        `<div class="tool-rec"><span class="tool-name">${esc(t.name)}</span><span class="tool-why"> — ${esc(t.reason)} · ${esc(t.cost)}</span></div>`
+      ).join('') : '';
+
+  area.innerHTML = `
+    <div class="edit-result">
+      <div class="edit-result-header">
+        <div class="edit-result-title">Edit Guidance</div>
+        <div class="brand-score">
+          Brand fit
+          <div class="score-dots">${dots}</div>
+          <span style="color:var(--stone);font-size:.72rem">${score}/5</span>
+        </div>
+      </div>
+
+      <div class="edit-section">
+        <div class="edit-section-label"><div class="dot"></div> What's already working</div>
+        <div class="edit-body">${esc(r.what_is_working || '')}</div>
+      </div>
+
+      <div class="edit-section">
+        <div class="edit-section-label"><div class="dot"></div> Suggested adjustments</div>
+        <ul class="suggestion-list">${adjustmentsHtml}</ul>
+      </div>
+
+      <div class="edit-section">
+        <div class="edit-section-label"><div class="dot"></div> What's trending right now</div>
+        <div class="edit-body">${esc(r.trend_context || '')}</div>
+      </div>
+
+      ${toolsHtml ? `<div class="edit-section">
+        <div class="edit-section-label"><div class="dot"></div> Recommended tools</div>
+        <div>${toolsHtml}</div>
+      </div>` : ''}
+
+      <div class="edit-section" style="background:var(--parch)">
+        <div class="edit-section-label"><div class="dot" style="background:var(--moss)"></div> Brand note</div>
+        <div class="edit-body" style="font-style:italic;color:var(--stone)">${esc(r.brand_note || '')}</div>
+      </div>
+    </div>
+
+    <button class="ready-btn" onclick="sendToListings()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+      This photo is ready — create listing
+    </button>
+  `;
+
+  area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── CARRY PHOTO TO LISTINGS TAB ──
+function sendToListings() {
+  if (!editImageData) return;
+
+  const vision = document.getElementById('edit-vision').value.trim();
+  const locSel = document.getElementById('edit-loc').value;
+  const locCustom = document.getElementById('edit-loc-custom').value.trim();
+  const location = locSel === '__custom__' ? locCustom : locSel;
+
+  carriedPhoto = {
+    imageData: editImageData,
+    imageType: editImageType,
+    imageDataUrl: editImageDataUrl,
+    px: editImagePx,
+    desc: vision,
+    location: location
+  };
+
+  addSlotWithPhoto(carriedPhoto);
+  document.getElementById('listing-badge').classList.add('visible');
+  switchTab('list');
+
+  setTimeout(() => {
+    document.getElementById('panel-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+// ── SLOTS ──
+function addSlot(carried) {
+  if (slots.length >= 8) return;
+  slotId++;
+  const id = slotId;
+  const isCarried = !!carried;
+  slots.push({ id, imageData: carried?.imageData || null, imageDataUrl: carried?.imageDataUrl || null, imageType: carried?.imageType || null, px: carried?.px || null });
+
+  const grid = document.getElementById('slots-grid');
+  const el = document.createElement('div');
+  el.className = 'slot' + (isCarried ? ' has-content carried-over' : '');
+  el.id = `slot-${id}`;
+  el.innerHTML = buildSlotHTML(id, slots.length, carried);
+  grid.appendChild(el);
+
+  if (slots.length >= 8) document.getElementById('add-slot-btn').style.display = 'none';
+}
+
+function addSlotWithPhoto(carried) {
+  const emptySlot = slots.find(s => !s.imageData);
+  if (emptySlot) {
+    emptySlot.imageData = carried.imageData;
+    emptySlot.imageDataUrl = carried.imageDataUrl;
+    emptySlot.imageType = carried.imageType;
+    emptySlot.px = carried.px || null;
+    const el = document.getElementById(`slot-${emptySlot.id}`);
+    if (el) {
+      el.classList.add('has-content', 'carried-over');
+      el.innerHTML = buildSlotHTML(emptySlot.id, slots.indexOf(emptySlot) + 1, carried);
+    }
+  } else {
+    addSlot(carried);
+  }
+}
+
+function buildSlotHTML(id, num, carried) {
+  const hasImg = carried && carried.imageDataUrl;
+  const imgHtml = hasImg
+    ? `<img class="slot-preview" src="${carried.imageDataUrl}" alt="Photo ${num}">`
+    : `<div class="slot-upload-zone" id="upload-zone-${id}">
+        <input type="file" accept="image/*" onchange="handleSlotImage(event, ${id})">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="color:var(--stone);opacity:.4">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>
+        </svg>
+        <div style="font-size:.78rem;color:var(--stone);text-align:center">
+          <strong style="display:block;color:var(--bark);font-weight:500;font-size:.82rem">Upload photo</strong>or drag & drop
+        </div>
+      </div>`;
+
+  const locOptions = [...CONFIG.locations, 'unspecified location']
+    .map(v => `<option value="${v}" ${(carried?.location || lastUsedLocation) === v ? 'selected' : ''}>${v === 'unspecified location' ? 'No location' : v}</option>`)
+    .join('') + '<option value="__custom__">Other…</option>';
+
+  return `
+    <button class="remove-btn" onclick="removeSlot(${id})" title="Remove">✕</button>
+    ${imgHtml}
+    <div class="slot-body">
+      <div class="slot-num">Photo ${num}${carried ? '<span class="carried-tag">carried over</span>' : ''}</div>
+      <textarea class="slot-desc" id="desc-${id}" placeholder="Mood, colors, subject…">${carried?.desc ? esc(carried.desc) : ''}</textarea>
+      <select class="slot-select slot-ptype" id="ptype-${id}" onchange="toggleSlotType(this, ${id})">
+        <option value="product">📦 Product to sell</option>
+        <option value="personal">🐾 Personal (you, dogs, garden)</option>
+        <option value="lifestyle">🏡 Lifestyle / styled</option>
+      </select>
+      <div class="slot-meta">
+        <select class="slot-select" id="type-${id}">
+          <option value="digital print">Digital Print</option>
+          <option value="canvas print">Canvas</option>
+          <option value="set of prints">Print Set</option>
+        </select>
+        <select class="slot-select" id="loc-${id}" onchange="toggleSlotCustomLoc(this, ${id})">${locOptions}</select>
+        <input type="text" class="slot-select" id="loc-custom-${id}"
+          placeholder="Location…" style="display:none;cursor:text;background:white">
+      </div>
+    </div>
+  `;
+}
+
+// Personal/Lifestyle photos aren't products — hide the print-format picker for them
+function toggleSlotType(sel, id) {
+  const typeSel = document.getElementById(`type-${id}`);
+  if (typeSel) typeSel.style.display = sel.value === 'product' ? '' : 'none';
+}
+
+function removeSlot(id) {
+  slots = slots.filter(s => s.id !== id);
+  document.getElementById(`slot-${id}`)?.remove();
+  document.getElementById('add-slot-btn').style.display = 'flex';
+  document.querySelectorAll('.slot-num').forEach((el, i) => {
+    const base = el.textContent.replace(/Photo \d+/, `Photo ${i+1}`);
+    el.textContent = base;
+  });
+}
+
+function handleSlotImage(e, id) {
+  const file = e.target.files[0]; if (!file) return;
+  const slot = slots.find(s => s.id === id);
+  compressImage(file, (dataUrl, b64, mime, meta) => {
+    slot.imageDataUrl = dataUrl;
+    slot.imageData = b64;
+    slot.imageType = mime;
+    slot.px = meta || null;
+    const zone = document.getElementById(`upload-zone-${id}`);
+    if (zone) zone.outerHTML = `<img class="slot-preview" src="${slot.imageDataUrl}" alt="preview">`;
+    document.getElementById(`slot-${id}`)?.classList.add('has-content');
+  });
+}
+
+function toggleSlotCustomLoc(sel, id) {
+  const custom = document.getElementById(`loc-custom-${id}`);
+  if (custom) {
+    custom.style.display = sel.value === '__custom__' ? 'block' : 'none';
+    if (sel.value === '__custom__') custom.focus();
+  }
+  if (sel.value !== '__custom__') {
+    lastUsedLocation = sel.value;
+    lsSet('bb_last_location', sel.value);
+  }
+}
+
+// ── GENERATE LISTINGS ──
+const LISTING_SYSTEM = `You are an Etsy SEO and copywriting expert for Berkies & Bean, a nature photography shop by Devin.
+
+${BRAND_IDENTITY}
+
+Brand voice: warm, poetic, grounded. Devin started this shop after a life-changing Iceland trip tied to her mental health journey.
+
+STEP 1 — RESEARCH: Use web_search to find current trends:
+- "Etsy trending wall art searches ${CURRENT_YEAR}"
+- "Pinterest nature photography home decor trends ${CURRENT_YEAR}"
+
+STEP 2 — GENERATE: For each photo you'll receive a post_type. Produce output for that type.
+
+Return ONLY a raw JSON array:
+[{
+  "post_type": "product|personal|lifestyle",
+  "title": "...",
+  "description": "...",
+  "tags": ["tag1",...,"tag13"],
+  "price": 9.99,
+  "price_note": "One sentence",
+  "trend_note": "One sentence on what trend informed this",
+  "instagram_caption": "...",
+  "pinterest_title": "...",
+  "pinterest_description": "...",
+  "reel_recipe": {
+    "hook": "first-2-second hook (text or visual)",
+    "shots": ["3-5 short clip/shot ideas, in order"],
+    "pacing": "length + cutting style, e.g. 12s, slow drifts, cut on the beat",
+    "audio": "what kind of trending audio to search for",
+    "text_overlay": "suggested on-screen caption"
+  }
+}]
+
+POST TYPE controls what to fill in:
+- product = a print she's selling. Fill the FULL Etsy listing (title, tags, price, description) + social captions + reel_recipe.
+- personal = a behind-the-scenes/personal photo (Devin herself, her dogs, her garden, daily life). DO NOT write an Etsy listing: set title to a short friendly label, tags to [], price to 0, description to "". Write a warm, story-first instagram_caption in her voice with NO hard sell (a gentle "prints in my shop" only if it genuinely fits). Pinterest fields only if the image truly suits Pinterest search, else "". Always include a reel_recipe. The goal of personal posts is connection and audience-building, not selling.
+- lifestyle = a styled/in-context shot (a print on her wall, packaging an order, a flatlay). No full Etsy listing (title=short label, tags=[], price=0, description=""), but write social captions (instagram + pinterest) that softly connect to the shop, plus a reel_recipe.
+
+TITLE (product only): [Subject] Photography Print: [Mood] (Digital Download). Max 140 chars. Lead with the mood/feeling and what's trending, not just the place.
+TAGS (product only): Exactly 13, each under 20 chars. Real buyer search phrases. Include current-trend phrases where genuine (e.g. moody landscape, ethereal wall art, nature decor) plus specific subject/place terms.
+DESCRIPTION (product only): 3-4 paragraphs in Devin's voice. Vivid, feeling-first opener. What makes it special and how it makes a room feel. Brand closer. IMPORTANT: do NOT state any specific print dimensions, sizes, DPI, or file formats — those exact specs are added automatically from the real file and must not be guessed. You may say it's a digital download in general terms, but no numbers.
+PRICE (product only): Base the price on your CURRENT web_search findings for comparable nature/landscape prints selling on Etsy right now — not on fixed numbers. Keep within sane bounds: digital download ~$${CONFIG.priceGuardrails.digitalMin}-${CONFIG.priceGuardrails.digitalMax}, print/gallery set or bundle ~$${CONFIG.priceGuardrails.setMin}-${CONFIG.priceGuardrails.setMax}, canvas ~$${CONFIG.priceGuardrails.canvasMin}-${CONFIG.priceGuardrails.canvasMax}. Price distinctive Iceland work toward the top of its range. Remember Etsy fees (~6.5% transaction + payment processing + $0.20 listing) and that digital margins are very high, so don't underprice distinctive work.
+
+SOCIAL CAPTIONS (she pastes these into a scheduler to post to Instagram, Pinterest, and Facebook):
+- instagram_caption: Warm, personal, in Devin's voice — a short story or feeling about the moment/place, NOT salesy. 2-4 short lines, then a soft call to action when appropriate. End with 8-12 relevant hashtags on a new line, mixing reach + niche (e.g. #icelandtravel #moodyphotography #naturewallart for product, or #goldenretriever #gardenlife #slowliving for personal). Works for a Reel or a photo post.
+- pinterest_title: Keyword-rich, search-friendly, under 100 chars (Pinterest is a search engine — lead with what people search).
+- pinterest_description: 2-3 sentences, naturally keyword-rich for Pinterest search.
+
+REEL RECIPE (every post type): A simple, doable plan to turn this into a 10-15s Instagram Reel from her photos/short clips — she edits it in CapCut or Instagram. Keep shots concrete and achievable for a solo creator with a phone.
+Return ONLY the raw JSON array.`;
+
+async function generateAll() {
+  if (!API_KEY.startsWith('sk-')) {
+    showListError('No API key set yet. Open Settings (top right) and paste your key.');
+    return;
+  }
+  const filled = slots.filter(s => {
+    const desc = document.getElementById(`desc-${s.id}`)?.value.trim();
+    return desc || s.imageData;
+  });
+  if (filled.length === 0) { showListError('Add at least one photo or description first.'); return; }
+
+  const btn = document.getElementById('list-btn');
+  const label = document.getElementById('list-btn-label');
+  const bar = document.getElementById('list-progress');
+  const status = document.getElementById('list-status');
+  const errEl = document.getElementById('list-error');
+
+  btn.disabled = true;
+  label.textContent = `Writing ${filled.length} listing${filled.length > 1 ? 's' : ''}…`;
+  bar.style.width = '0%'; errEl.style.display = 'none';
+  status.textContent = 'Researching what buyers are searching for…';
+
+  let prog = 0;
+  const pi = setInterval(() => { prog = Math.min(prog + Math.random()*4, 60); bar.style.width = prog+'%'; }, 500);
+
+  // Metadata for every filled slot, order preserved
+  const photoLabels = filled.map((slot) => {
+    const desc = document.getElementById(`desc-${slot.id}`)?.value.trim() || '';
+    const ptype = document.getElementById(`ptype-${slot.id}`)?.value || 'product';
+    const type = document.getElementById(`type-${slot.id}`)?.value || 'digital print';
+    const locSel = document.getElementById(`loc-${slot.id}`)?.value;
+    const locCustom = document.getElementById(`loc-custom-${slot.id}`)?.value.trim();
+    const loc = locSel === '__custom__' ? (locCustom || 'unspecified') : (locSel || 'unspecified');
+    return { slot, desc, type, loc, ptype };
+  });
+
+  const groups = chunk(photoLabels, 4); // small batches so output can't truncate
+
+  try {
+    let allListings = [], usedLabels = [], done = 0;
+
+    for (let g = 0; g < groups.length; g++) {
+      clearInterval(pi);
+      const group = groups[g];
+      status.textContent = groups.length > 1
+        ? `Writing listings ${done + 1}–${done + group.length} of ${photoLabels.length}…`
+        : 'Researching what buyers are searching for…';
+
+      const contentParts = [{ type: 'text', text: `Generate one result for each of the ${group.length} photo(s) below. Return a JSON array with exactly ${group.length} object(s). Each photo has a post_type that controls what to produce.` }];
+      group.forEach((meta, idx) => {
+        if (meta.slot.imageData) {
+          contentParts.push({ type: 'image', source: { type: 'base64', media_type: meta.slot.imageType || 'image/jpeg', data: meta.slot.imageData } });
+        }
+        contentParts.push({ type: 'text', text: `Photo ${idx + 1}: post_type=${meta.ptype}, product_format=${meta.type}, location=${meta.loc}. ${meta.desc ? 'Description: ' + meta.desc : 'Analyze the image.'}` });
+      });
+
+      const tools = [{ type: 'web_search_20250305', name: 'web_search' }];
+      const text = await callClaude(LISTING_SYSTEM, [{ role: 'user', content: contentParts }], {
+        tools, max_tokens: 8000,
+        onTool: () => { status.textContent = 'Checking live trend data…'; }
+      });
+      const part = extractJsonArray(text);
+      const k = Math.min(part.length, group.length);     // keep labels aligned to results
+      allListings = allListings.concat(part.slice(0, k));
+      usedLabels = usedLabels.concat(group.slice(0, k));
+      done += group.length;
+      bar.style.width = Math.round((done / photoLabels.length) * 100) + '%';
+    }
+
+    bar.style.width = '100%';
+    if (!allListings.length) throw new Error('No listings came back');
+    renderListings(allListings, usedLabels);
+    const missing = photoLabels.length - allListings.length;
+    const note = missing > 0 ? ` (${missing} didn't come back — regenerate those)` : '';
+    status.textContent = `${allListings.length} listing${allListings.length > 1 ? 's' : ''} ready — informed by today's trends.${note}`;
+
+  } catch(err) {
+    clearInterval(pi);
+    const msg = /JSON|token|Unexpected|position|No listings/i.test(err.message || '')
+      ? 'Part of the response came back unreadable. Try again, or regenerate any photos that are missing.'
+      : 'Something went wrong talking to the API: ' + (err.message || 'unknown error') + '. Check your key and connection, then try again.';
+    showListError(msg);
+    status.textContent = ''; console.error(err);
+  } finally {
+    clearInterval(pi);
+    setTimeout(() => { btn.disabled = false; label.textContent = 'Generate All Listings'; bar.style.width = '0%'; }, 600);
+  }
+}
+
+function renderListings(listings, labels) {
+  generatedListings = listings.map((l, i) => {
+    const meta = labels[i] || {};
+    const slot = meta.slot || {};
+    const px = slot.px || null;
+    const po = px ? computePrintOptions(px.w, px.h) : null;
+    const maxLabel = (po && !po.tooLow) ? po.defaultMax.label : '';
+    const exampleLabel = (po && !po.tooLow) ? po.example.label : '';
+    const printFlag = px ? compressionFlag(px.w, px.h, px.bytes) : '';
+    return {
+      title: l.title || '', description: l.description || '', tags: (l.tags || []),
+      price: Number(l.price || 0), price_note: l.price_note || '', trend_note: l.trend_note || '',
+      instagram_caption: l.instagram_caption || '', pinterest_title: l.pinterest_title || '', pinterest_description: l.pinterest_description || '',
+      post_type: meta.ptype || l.post_type || 'product',
+      reel_recipe: l.reel_recipe || null,
+      px: px, maxLabel, exampleLabel, printFlag,
+      printNote: buildPrintNote(maxLabel, exampleLabel),
+      num: i + 1, thumb: slot.imageDataUrl || null,
+      _photo: slot.imageData ? { imageData: slot.imageData, imageType: slot.imageType } : null,
+      _meta: { desc: meta.desc || '', type: meta.type || 'digital print', loc: meta.loc || 'unspecified' }
+    };
+  });
+  renderAllCards();
+  saveListings();
+}
+
+function renderAllCards() {
+  const section = document.getElementById('results-section');
+  const container = document.getElementById('results-container');
+  if (!generatedListings.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  container.innerHTML = `
+    <div class="results-toolbar">
+      <button class="tool-btn" onclick="cp(this, allListingsText())">Copy all listings</button>
+      <button class="tool-btn ghost" onclick="downloadAllCsv()">⬇ Download backup (CSV)</button>
+      <span class="saved-note">Saved on this device</span>
+    </div>
+    <p class="edit-hint">Tip: tap any field to tweak it before copying — your changes save automatically.</p>
+    <div id="cards-wrap"></div>
+  `;
+  const wrap = container.querySelector('#cards-wrap');
+  generatedListings.forEach((l, i) => wrap.appendChild(buildCard(l, i)));
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function buildCard(l, i) {
+  const card = document.createElement('div');
+  card.className = 'result-card';
+  card.dataset.idx = i;
+  card.style.animationDelay = (i * 0.05) + 's';
+
+  const isProduct = (l.post_type || 'product') === 'product';
+  const typeLabel = { product: '📦 Product', personal: '🐾 Personal', lifestyle: '🏡 Lifestyle' }[l.post_type || 'product'];
+
+  const thumbHtml = l.thumb
+    ? `<img class="result-thumb" src="${l.thumb}" alt="Photo ${i+1}">`
+    : `<div class="result-thumb-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>`;
+
+  const tagsPreview = (l.tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join('');
+  const hasPin = (l.pinterest_title || l.pinterest_description);
+
+  // Etsy section — products only
+  const etsyBody = isProduct ? `
+    <div class="result-body">
+      <div class="field-row">
+        <div class="field-label">Title <span class="title-count" style="color:var(--fog);font-size:.63rem">${(l.title||'').length}/140</span>
+          <button class="copy-btn" onclick="copyField(${i},'title',this)">Copy</button>
+        </div>
+        <input class="edit-input edit-title" maxlength="140" value="${esc(l.title)}" oninput="updateListingField(${i},'title',this.value)">
+      </div>
+      <div class="field-row">
+        <div class="field-label">Price
+          <button class="copy-btn" onclick="copyField(${i},'price',this)">Copy</button>
+        </div>
+        <input class="edit-input" type="text" inputmode="decimal" value="${Number(l.price||0).toFixed(2)}" oninput="updateListingField(${i},'price',this.value)" style="max-width:130px">
+      </div>
+      <div class="field-row">
+        <div class="field-label">Tags (<span class="tag-count">${(l.tags||[]).length}</span>/13)
+          <button class="copy-btn" onclick="copyField(${i},'tags',this)">Copy all</button>
+        </div>
+        <input class="edit-input" value="${esc((l.tags||[]).join(', '))}" placeholder="comma, separated, tags" oninput="updateListingField(${i},'tags',this.value)">
+        <div class="tags-row" style="margin-top:.5rem">${tagsPreview}</div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">Description
+          <button class="copy-btn" onclick="copyField(${i},'description',this)">Copy</button>
+        </div>
+        <textarea class="edit-area" oninput="updateListingField(${i},'description',this.value)">${esc(l.description)}</textarea>
+      </div>
+      ${buildPrintBlock(l, i)}
+    </div>` : '';
+
+  // Social captions — all types (Pinterest rows shown only if present)
+  const pinRows = hasPin ? `
+        <div class="field-row">
+          <div class="field-label">Pinterest title
+            <button class="copy-btn" onclick="copyField(${i},'pinterest_title',this)">Copy</button>
+          </div>
+          <input class="edit-input" value="${esc(l.pinterest_title)}" oninput="updateListingField(${i},'pinterest_title',this.value)">
+        </div>
+        <div class="field-row">
+          <div class="field-label">Pinterest description
+            <button class="copy-btn" onclick="copyPinterest(${i},this)">Copy title + description</button>
+          </div>
+          <textarea class="edit-area" style="min-height:90px" oninput="updateListingField(${i},'pinterest_description',this.value)">${esc(l.pinterest_description)}</textarea>
+        </div>` : '';
+
+  const socialBody = `
+      <div class="social-block ${isProduct ? '' : 'social-block-top'}">
+        <div class="social-head">Social captions <span style="font-weight:300;color:var(--stone)">— paste into your scheduler</span></div>
+        <div class="field-row">
+          <div class="field-label">Instagram / Facebook caption
+            <button class="copy-btn" onclick="copyField(${i},'instagram_caption',this)">Copy</button>
+          </div>
+          <textarea class="edit-area" style="min-height:110px" oninput="updateListingField(${i},'instagram_caption',this.value)">${esc(l.instagram_caption)}</textarea>
+        </div>
+        ${pinRows}
+      </div>`;
+
+  // Reel recipe — all types, read-only plan with a copy button
+  const r = l.reel_recipe;
+  const reelBody = r ? `
+      <div class="reel-block">
+        <div class="reel-head">🎬 Reel recipe <span style="font-weight:300;color:var(--stone)">— make it in CapCut or Instagram</span>
+          <button class="copy-btn" style="margin-left:auto" onclick="copyReel(${i},this)">Copy plan</button>
+        </div>
+        ${r.hook ? `<div class="reel-row"><span class="reel-k">Hook</span><span>${esc(r.hook)}</span></div>` : ''}
+        ${Array.isArray(r.shots) && r.shots.length ? `<div class="reel-row"><span class="reel-k">Shots</span><span><ol class="reel-shots">${r.shots.map(s => `<li>${esc(s)}</li>`).join('')}</ol></span></div>` : ''}
+        ${r.pacing ? `<div class="reel-row"><span class="reel-k">Pacing</span><span>${esc(r.pacing)}</span></div>` : ''}
+        ${r.audio ? `<div class="reel-row"><span class="reel-k">Audio</span><span>${esc(r.audio)}</span></div>` : ''}
+        ${r.text_overlay ? `<div class="reel-row"><span class="reel-k">On-screen</span><span>${esc(r.text_overlay)}</span></div>` : ''}
+      </div>` : '';
+
+  const headerMain = isProduct
+    ? `<div class="result-listing-title hdr-title">${esc(l.title)}</div>
+       <div class="result-price"><span class="hdr-price">$${Number(l.price||0).toFixed(2)}</span> <span style="font-size:.74rem;color:var(--stone);font-family:'Jost',sans-serif;font-weight:300">— ${esc(l.price_note)}</span></div>`
+    : `<div class="result-listing-title hdr-title" style="font-size:.92rem;color:var(--stone)">${esc(l.title) || 'Social post'}</div>`;
+
+  card.innerHTML = `
+    <div class="result-header">
+      ${thumbHtml}
+      <div class="result-header-info">
+        <div class="result-num">Photo ${i+1} · <span style="color:var(--gold)">${typeLabel}</span></div>
+        ${headerMain}
+      </div>
+    </div>
+    ${etsyBody}
+    <div class="result-body" style="${isProduct ? 'padding-top:0' : ''}">
+      ${socialBody}
+      ${reelBody}
+    </div>
+    <div class="card-actions">
+      <button class="tool-btn" onclick="copyWholeListing(${i},this)">${isProduct ? 'Copy entire listing' : 'Copy caption'}</button>
+      ${l._photo ? `<button class="tool-btn ghost" onclick="regenerateOne(${i},this)">↻ Regenerate this one</button>` : ''}
+    </div>
+    ${l.trend_note ? `<div class="trend-note">${esc(l.trend_note)}</div>` : ''}
+  `;
+  return card;
+}
+
+// Update state live as she edits (without rebuilding the field she's typing in)
+function updateListingField(i, field, value) {
+  const l = generatedListings[i];
+  if (!l) return;
+  const card = document.querySelector(`.result-card[data-idx="${i}"]`);
+  if (field === 'tags') {
+    l.tags = value.split(',').map(t => t.trim()).filter(Boolean);
+    if (card) {
+      const cnt = card.querySelector('.tag-count'); if (cnt) cnt.textContent = l.tags.length;
+      const prev = card.querySelector('.tags-row'); if (prev) prev.innerHTML = l.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('');
+    }
+  } else if (field === 'price') {
+    l.price = parseFloat(value) || 0;
+    if (card) { const hp = card.querySelector('.hdr-price'); if (hp) hp.textContent = '$' + l.price.toFixed(2); }
+  } else {
+    l[field] = value;
+    if (field === 'title' && card) {
+      const ht = card.querySelector('.hdr-title'); if (ht) ht.textContent = value;
+      const cc = card.querySelector('.title-count'); if (cc) cc.textContent = value.length + '/140';
+    }
+  }
+  saveListings();
+}
+
+function copyField(i, field, btn) {
+  const l = generatedListings[i]; if (!l) return;
+  const text = field === 'tags' ? (l.tags || []).join(', ')
+             : field === 'price' ? Number(l.price || 0).toFixed(2)
+             : (l[field] || '');
+  cp(btn, String(text));
+}
+
+function copyPinterest(i, btn) {
+  const l = generatedListings[i]; if (!l) return;
+  const text = `${l.pinterest_title || ''}\n\n${l.pinterest_description || ''}`.trim();
+  cp(btn, text);
+}
+
+// Print details panel — deterministic facts from the real file; she sets the ceiling (her quality call)
+function buildPrintBlock(l, i) {
+  const po = l.px ? computePrintOptions(l.px.w, l.px.h) : null;
+  if (!po) {
+    return `
+      <div class="print-block">
+        <div class="print-head">🖼️ Print details</div>
+        <div style="font-size:.82rem;color:var(--stone);line-height:1.6">Couldn't read this file's dimensions on this device (HEIC photos won't open in Chrome on a computer — a JPEG will). You can type the print details below.</div>
+        <textarea class="edit-area" style="min-height:70px;margin-top:.6rem" oninput="updatePrintField(${i},'printNote',this.value)">${esc(l.printNote || '')}</textarea>
+      </div>`;
+  }
+  if (po.tooLow) {
+    return `
+      <div class="print-block">
+        <div class="print-head">🖼️ Print details <span style="font-weight:300;color:var(--stone)">— ${l.px.w}×${l.px.h} px</span></div>
+        <div class="print-flag">⚠ This file is too low-resolution to hit your ${po.floor} PPI floor at any standard print size. It's fine for social, but I wouldn't recommend selling it as a print.</div>
+        <textarea class="edit-area" style="min-height:60px;margin-top:.6rem" oninput="updatePrintField(${i},'printNote',this.value)">${esc(l.printNote || '')}</textarea>
+      </div>`;
+  }
+  const maxSel = l.maxLabel || po.defaultMax.label;
+  const exSel = l.exampleLabel || po.example.label;
+  const optTag = o => `<option value="${o.label}" ${o.label === maxSel ? 'selected' : ''}>${o.label} · ${o.ppi} PPI${o.tier === 'gallery' ? ' (gallery)' : ''}</option>`;
+  const exOpt = o => `<option value="${o.label}" ${o.label === exSel ? 'selected' : ''}>${o.label} · ${o.ppi} PPI</option>`;
+  const exampleChoices = po.opts.filter(o => o.tier === 'gallery');
+  // Plain-language summary (the facts she wants to see at a glance)
+  const mp = Math.round((l.px.w * l.px.h) / 1e6);
+  const galleryOpts = po.opts.filter(o => o.tier === 'gallery');
+  const galleryMax = galleryOpts[galleryOpts.length - 1];
+  const n = po.opts.length;
+  const small = po.opts[0], large = po.opts[n - 1], medium = po.opts[Math.floor((n - 1) / 2)];
+  const smlLine = `<strong>S</strong> ${small.label} · <strong>M</strong> ${medium.label} · <strong>L</strong> ${large.label}`;
+  const sr = computePrintOptions(l.px.w * 2, l.px.h * 2);
+  const srMax = (sr && !sr.tooLow) ? sr.defaultMax.label : null;
+  return `
+    <div class="print-block">
+      <div class="print-head">🖼️ Print details</div>
+      <div class="print-summary">
+        <div><span>Your image</span> ${l.px.w} × ${l.px.h} px <em>(${mp} MP)</em></div>
+        <div class="rec"><span>Recommend to buyers</span> prints up to ${po.defaultMax.label} <em>(${po.defaultMax.ppi} PPI)</em></div>
+        <div><span>Extra-crisp under</span> ${galleryMax ? galleryMax.label : '—'} <em>(300 PPI)</em></div>
+        ${srMax ? `<div><span>If you upscale 2×</span> up to ${srMax} <em>(e.g. Lightroom Super Resolution)</em></div>` : ''}
+      </div>
+      <div class="print-sml">Or offer sizes — ${smlLine}</div>
+      <div class="print-controls">
+        <label class="print-ctl">Max size (≥${po.floor} PPI, your call)
+          <select class="edit-input" onchange="updatePrintField(${i},'maxLabel',this.value)">${po.opts.map(optTag).join('')}</select>
+        </label>
+        <label class="print-ctl">Featured example
+          <select class="edit-input" onchange="updatePrintField(${i},'exampleLabel',this.value)">${(exampleChoices.length?exampleChoices:po.opts).map(exOpt).join('')}</select>
+        </label>
+      </div>
+      ${l.printFlag ? `<div class="print-flag">⚠ ${esc(l.printFlag)}</div>` : ''}
+      <div class="field-label" style="margin-top:.7rem">Recommendation for your listing
+        <button class="copy-btn" onclick="copyField(${i},'printNote',this)">Copy</button>
+      </div>
+      <textarea class="edit-area print-note" style="min-height:70px" oninput="updatePrintField(${i},'printNote',this.value)">${esc(l.printNote || '')}</textarea>
+      <details class="howto" style="margin:.7rem 0 0;box-shadow:none">
+        <summary style="padding:.6rem 0">What should I tell buyers?</summary>
+        <div class="howto-body" style="padding-bottom:.6rem">
+          Use the <strong>"Recommend to buyers"</strong> size above — that's the largest this file prints while staying sharp at your ${po.floor} PPI floor. List it as one size, or offer Small / Medium / Large. Buyers can always print smaller; you're just naming the biggest that still looks good. <em>Pixels decide this — not the file's megabytes.</em><br><br>
+          <strong>Want bigger?</strong> Two ways: shoot in your phone's <strong>50MP mode</strong> (more real detail to start with), or run <strong>Lightroom Super Resolution</strong>, which doubles the pixels — the "If you upscale 2×" line shows the payoff. Upscaling adds AI-generated detail, so it works best on shots that are already sharp and well-lit; it won't rescue a soft or noisy photo.
+        </div>
+      </details>
+      <div style="font-size:.72rem;color:var(--stone);font-style:italic;margin-top:.4rem">Only sizes at or above your ${po.floor} PPI floor are shown — same math as Photoshop's Image Size. You've seen it full-size, so the final sharpness call is yours.</div>
+      <div style="font-size:.72rem;color:var(--stone);font-style:italic;margin-top:.4rem">Size is based on resolution. You've seen the photo full-size — only promise a size you know looks sharp.</div>
+    </div>`;
+}
+
+function updatePrintField(i, field, value) {
+  const l = generatedListings[i]; if (!l) return;
+  l[field] = value;
+  // when max or example changes, rewrite the print line (unless she's hand-edited it — we still refresh on dropdown change)
+  if (field === 'maxLabel' || field === 'exampleLabel') {
+    l.printNote = buildPrintNote(l.maxLabel, l.exampleLabel);
+    const card = document.querySelector(`.result-card[data-idx="${i}"]`);
+    const note = card && card.querySelector('.print-note');
+    if (note) note.value = l.printNote;
+  }
+  saveListings();
+}
+
+function reelText(l) {
+  const r = l.reel_recipe; if (!r) return '';
+  const lines = ['REEL PLAN'];
+  if (r.hook) lines.push(`Hook: ${r.hook}`);
+  if (Array.isArray(r.shots) && r.shots.length) lines.push('Shots:\n' + r.shots.map((s, n) => `  ${n+1}. ${s}`).join('\n'));
+  if (r.pacing) lines.push(`Pacing: ${r.pacing}`);
+  if (r.audio) lines.push(`Audio: ${r.audio}`);
+  if (r.text_overlay) lines.push(`On-screen text: ${r.text_overlay}`);
+  return lines.join('\n');
+}
+
+function copyReel(i, btn) {
+  const l = generatedListings[i]; if (!l) return;
+  cp(btn, reelText(l));
+}
+
+function copyWholeListing(i, btn) {
+  const l = generatedListings[i]; if (!l) return;
+  const isProduct = (l.post_type || 'product') === 'product';
+  let text;
+  if (isProduct) {
+    text = `${l.title || ''}\n\nPrice: $${Number(l.price || 0).toFixed(2)}\n\nTags: ${(l.tags || []).join(', ')}\n\n${l.description || ''}`;
+    if (l.printNote) text += `\n\n${l.printNote}`;
+  } else {
+    text = l.instagram_caption || '';
+  }
+  cp(btn, text);
+}
+
+function allListingsText() {
+  return generatedListings.map((l, i) =>
+    `=== Photo ${i+1} ===\n${l.title}\n\nPrice: $${Number(l.price||0).toFixed(2)}\n\nTags: ${(l.tags||[]).join(', ')}\n\n${l.description}`
+  ).join('\n\n\n');
+}
+
+function csvCell(s) { return '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"'; }
+
+function downloadAllCsv() {
+  if (!generatedListings.length) return;
+  const header = ['Post Type', 'Title', 'Price', 'Tags', 'Description', 'Print Details', 'Instagram Caption', 'Pinterest Title', 'Pinterest Description', 'Reel Hook'].map(csvCell).join(',');
+  const rows = generatedListings.map(l =>
+    [l.post_type || 'product', l.title, Number(l.price||0).toFixed(2), (l.tags||[]).join(', '), l.description, l.printNote || '', l.instagram_caption || '', l.pinterest_title || '', l.pinterest_description || '', (l.reel_recipe && l.reel_recipe.hook) || ''].map(csvCell).join(',')
+  );
+  const csv = [header, ...rows].join('\r\n');
+  try {
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'berkies-listings.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) {
+    showListError('Could not download on this browser — use "Copy all listings" instead.');
+  }
+}
+
+// Persist listing TEXT so nothing is lost on refresh/close (thumbnails stored if they fit)
+function saveListings() {
+  try {
+    const slim = generatedListings.map(l => ({
+      title: l.title, description: l.description, tags: l.tags, price: l.price,
+      price_note: l.price_note, trend_note: l.trend_note, num: l.num, thumb: l.thumb,
+      instagram_caption: l.instagram_caption, pinterest_title: l.pinterest_title, pinterest_description: l.pinterest_description,
+      post_type: l.post_type, reel_recipe: l.reel_recipe,
+      px: l.px, maxLabel: l.maxLabel, exampleLabel: l.exampleLabel, printFlag: l.printFlag, printNote: l.printNote
+    }));
+    try { localStorage.setItem('bb_listings', JSON.stringify(slim)); }
+    catch (e) {
+      const noThumb = slim.map(({ thumb, ...rest }) => rest);
+      try { localStorage.setItem('bb_listings', JSON.stringify(noThumb)); } catch (e2) {}
+    }
+  } catch (e) {}
+}
+
+function loadListings() {
+  const raw = lsGet('bb_listings');
+  if (!raw) return;
+  try {
+    const arr = JSON.parse(raw);
+    if (Array.isArray(arr) && arr.length) {
+      generatedListings = arr.map(l => ({
+        ...l, tags: l.tags || [], price: Number(l.price || 0), _photo: null,
+        _meta: l._meta || {}
+      }));
+      renderAllCards();
+    }
+  } catch (e) {}
+}
+
+// Redo a single listing without touching the others (keeps her good ones)
+async function regenerateOne(i, btn) {
+  const l = generatedListings[i];
+  if (!l || !l._photo) return;
+  if (!API_KEY.startsWith('sk-')) { showListError('No API key set yet. Open Settings and paste your key.'); return; }
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Regenerating…';
+  try {
+    const contentParts = [
+      { type: 'text', text: `Generate ONE optimized listing for this single photo. Return a JSON array with exactly 1 object.` },
+      { type: 'image', source: { type: 'base64', media_type: l._photo.imageType || 'image/jpeg', data: l._photo.imageData } },
+      { type: 'text', text: `Photo: type=${l._meta.type}, location=${l._meta.loc}. ${l._meta.desc ? ('Description: ' + l._meta.desc) : 'Analyze the image.'} Give a fresh take, meaningfully different from a previous attempt.` }
+    ];
+    const tools = [{ type: 'web_search_20250305', name: 'web_search' }];
+    const messages = [{ role: 'user', content: contentParts }];
+    let finalText = ''; let turns = 0;
+    while (turns < 6) {
+      turns++;
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model: CURRENT_MODEL, max_tokens: 3000, system: LISTING_SYSTEM, tools, messages })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      messages.push({ role: 'assistant', content: data.content });
+      if (data.stop_reason === 'pause_turn') { continue; }
+      if (data.stop_reason === 'tool_use') {
+        const results = data.content.filter(b => b.type === 'tool_use').map(b => ({
+          type: 'tool_result', tool_use_id: b.id, content: `Search done: "${b.input?.query}"`
+        }));
+        messages.push({ role: 'user', content: results });
+      } else {
+        finalText = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+        break;
+      }
+    }
+    let one;
+    if (finalText.indexOf('[') >= 0 && finalText.indexOf('[') < (finalText.indexOf('{') < 0 ? Infinity : finalText.indexOf('{') + 1)) {
+      const arr = extractJsonArray(finalText); one = arr[0];
+    } else {
+      one = extractJsonObject(finalText);
+    }
+    if (!one) throw new Error('Empty result');
+    generatedListings[i] = {
+      ...l,
+      title: one.title || l.title, description: one.description || l.description,
+      tags: one.tags || l.tags, price: Number(one.price || l.price),
+      price_note: one.price_note || l.price_note, trend_note: one.trend_note || l.trend_note,
+      instagram_caption: one.instagram_caption || l.instagram_caption,
+      pinterest_title: one.pinterest_title || l.pinterest_title,
+      pinterest_description: one.pinterest_description || l.pinterest_description,
+      reel_recipe: one.reel_recipe || l.reel_recipe
+    };
+    const card = document.querySelector(`.result-card[data-idx="${i}"]`);
+    if (card) card.replaceWith(buildCard(generatedListings[i], i));
+    saveListings();
+  } catch (err) {
+    showListError('Could not regenerate that listing. Try again.');
+    console.error(err);
+    btn.disabled = false; btn.textContent = orig;
+  }
+}
+
+// ── UTILS ──
+async function cp(btn, text) {
+  const done = () => {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1800);
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      done(); return;
+    }
+    throw new Error('clipboard api unavailable');
+  } catch {
+    // Fallback for Safari / file:// / non-secure contexts
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed'; ta.style.top = '0'; ta.style.left = '0'; ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      ta.setSelectionRange(0, ta.value.length); // iOS Safari
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      ok ? done() : (btn.textContent = 'Copy failed');
+    } catch {
+      btn.textContent = 'Copy failed';
+    }
+  }
+}
+function showEditError(msg) {
+  const el = document.getElementById('edit-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+function showListError(msg) {
+  const el = document.getElementById('list-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+function esc(str) {
+  return String(str==null?'':str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Start with 3 listing slots
+addSlot(); addSlot(); addSlot();
+
+// ── DRAG AND DROP ──
+function setupDragDrop(areaEl, onFileFn) {
+  if (!areaEl) return;
+  areaEl.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    areaEl.style.borderColor = 'var(--moss)';
+    areaEl.style.background = 'var(--parch)';
+  });
+  areaEl.addEventListener('dragleave', () => {
+    areaEl.style.borderColor = '';
+    areaEl.style.background = '';
+  });
+  areaEl.addEventListener('drop', (e) => {
+    e.preventDefault();
+    areaEl.style.borderColor = '';
+    areaEl.style.background = '';
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      onFileFn(file);
+    }
+  });
+}
+
+function setupEditDragDrop() {
+  const area = document.getElementById('edit-upload-area');
+  setupDragDrop(area, (file) => {
+    compressImage(file, (dataUrl, b64, mime, meta) => {
+      editImageDataUrl = dataUrl;
+      editImageData = b64;
+      editImageType = mime;
+      editImagePx = meta || null;
+      area.classList.add('has-image');
+      area.innerHTML = `
+        <img class="upload-preview" src="${editImageDataUrl}" alt="Your photo">
+        <button class="upload-change" onclick="resetEditPhoto(event)">Change photo</button>
+      `;
+    });
+  });
+}
+setupEditDragDrop();
+
+// Wire drag/drop to audit CSV area
+const auditArea = document.getElementById('audit-upload-area');
+if (auditArea) {
+  auditArea.addEventListener('dragover', (e) => { e.preventDefault(); auditArea.style.borderColor = 'var(--moss)'; });
+  auditArea.addEventListener('dragleave', () => { auditArea.style.borderColor = ''; });
+  auditArea.addEventListener('drop', (e) => {
+    e.preventDefault(); auditArea.style.borderColor = '';
+    const file = e.dataTransfer.files[0];
+    if (file) handleCsvUpload({ target: { files: [file] } });
+  });
+}
+
+// Wire drag/drop to slot upload zones as they're added
+const _slotObserver = new MutationObserver(() => {
+  slots.forEach(s => {
+    const zone = document.getElementById('upload-zone-' + s.id);
+    if (zone && !zone.dataset.ddWired) {
+      zone.dataset.ddWired = '1';
+      setupDragDrop(zone, (file) => {
+        handleSlotImage({ target: { files: [file] } }, s.id);
+      });
+    }
+  });
+});
+_slotObserver.observe(document.getElementById('slots-grid'), { childList: true, subtree: true });
+</script>
+</body>
+</html>
