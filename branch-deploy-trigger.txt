@@ -1,0 +1,1 @@
+Trigger for Netlify branch deploy. Branch only, not for main.
