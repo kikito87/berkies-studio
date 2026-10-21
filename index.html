@@ -888,8 +888,8 @@ const CONFIG = {
 
   // Shown in the footer so Devin can confirm she's on the latest version.
   // Bump these each time a new file is deployed.
-  version: 'v1.2.1',
-  updated: 'Oct 20, 2026'
+  version: 'v1.2.2',
+  updated: 'Oct 21, 2026'
 };
 
 let API_KEY = lsGet('bb_api_key') || 'PASTE-YOUR-API-KEY-HERE';
@@ -1352,69 +1352,167 @@ function saveApiKey() {
 
 // ============================================================
 
-// Compress + ALWAYS re-encode to JPEG before sending to the API.
-// This is critical on iPad: photos are HEIC, which the API does not
-// accept. Drawing to a canvas and exporting as JPEG converts them and
-// also guarantees the media_type we send is truthful.
+// ── PHOTO PREP ──
+// Devin's exports can be 170MB+ and 200MP+. The old path (FileReader data URL
+// → new Image) fails to decode files that size on iPad. Tested on her iPad with
+// a 169MB / 211.8MP JPEG: createImageBitmap with resizeWidth, a blob URL, and a
+// full-size createImageBitmap all worked; the data URL did not.
+// So: (1) read the TRUE pixel size from the file header (no decode, any size) —
+// that is the source for the print-size math; (2) shrink a copy for the AI,
+// trying the three working methods in order; (3) always re-encode to JPEG so the
+// media_type sent to the API is truthful.
+const IMG_MAX_EDGE = 2400; // plenty of detail for analysis, keeps payload small
+
+// JPEG (baseline + progressive: scans markers to the SOF) and PNG (IHDR).
+// Returns null for anything else (e.g. HEIC) — the decoded size is used then.
+function readHeaderDims(file) {
+  return new Promise((resolve) => {
+    const r = new FileReader();
+    r.onerror = () => resolve(null);
+    r.onload = () => {
+      try {
+        const buf = r.result, b = new Uint8Array(buf);
+        let out = null;
+        if (b.length > 24 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47) {
+          const dv = new DataView(buf);
+          out = { fmt: 'PNG', w: dv.getUint32(16), h: dv.getUint32(20) };
+        } else if (b[0] === 0xFF && b[1] === 0xD8) {
+          let i = 2;
+          while (i + 9 < b.length) {
+            if (b[i] !== 0xFF) { i++; continue; }
+            const m = b[i + 1];
+            if (m === 0xFF) { i++; continue; }
+            if (m === 0xD8 || m === 0x01 || (m >= 0xD0 && m <= 0xD7)) { i += 2; continue; }
+            const len = (b[i + 2] << 8) | b[i + 3];
+            const isSOF = m >= 0xC0 && m <= 0xCF && m !== 0xC4 && m !== 0xC8 && m !== 0xCC;
+            if (isSOF) { out = { fmt: 'JPEG', h: (b[i + 5] << 8) | b[i + 6], w: (b[i + 7] << 8) | b[i + 8] }; break; }
+            i += 2 + len;
+          }
+        }
+        resolve(out && out.w > 0 && out.h > 0 ? out : null);
+      } catch (e) { resolve(null); }
+    };
+    r.readAsArrayBuffer(file.slice(0, Math.min(file.size, 8 * 1024 * 1024)));
+  });
+}
+
+// Draw any decoded source onto a canvas no larger than IMG_MAX_EDGE.
+// Throws if the canvas came out blank (iPad can silently refuse a canvas).
+function shrinkToCanvas(src, sw, sh) {
+  const s = Math.min(1, IMG_MAX_EDGE / Math.max(sw, sh));
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.floor(sw * s));
+  c.height = Math.max(1, Math.floor(sh * s));
+  const ctx = c.getContext('2d');
+  if (!ctx) throw new Error('no-2d-context');
+  ctx.drawImage(src, 0, 0, c.width, c.height);
+  let blank = true, first = null;
+  try {
+    for (let gy = 1; gy < 10 && blank; gy++) for (let gx = 1; gx < 10; gx++) {
+      const d = ctx.getImageData(Math.floor(c.width * gx / 10), Math.floor(c.height * gy / 10), 1, 1).data;
+      const key = d[0] + ',' + d[1] + ',' + d[2] + ',' + d[3];
+      if (first === null) first = key; else if (key !== first) { blank = false; break; }
+    }
+  } catch (e) { blank = false; } // can't check — don't block on it
+  if (blank) { c.width = 0; c.height = 0; throw new Error('blank-canvas'); }
+  return c;
+}
+
+// Method C2: browser shrinks while decoding (fastest on huge files). Needs header size.
+async function prepViaBitmapResize(file, hdr) {
+  if (typeof createImageBitmap !== 'function') throw new Error('no-createImageBitmap');
+  if (!hdr) throw new Error('no-header-size');
+  const s = Math.min(1, IMG_MAX_EDGE / Math.max(hdr.w, hdr.h));
+  const bmp = await createImageBitmap(file, { resizeWidth: Math.max(1, Math.floor(hdr.w * s)) });
+  // A rotated photo can come back taller than asked; shrinkToCanvas caps it either way.
+  try { return { canvas: shrinkToCanvas(bmp, bmp.width, bmp.height), dims: null }; }
+  finally { if (bmp.close) bmp.close(); }
+}
+
+// Method B: blob URL into an <img> (no giant base64 string in memory).
+function prepViaBlobUrl(file) {
+  return new Promise((resolve, reject) => {
+    const u = URL.createObjectURL(file);
+    const img = new Image();
+    const done = () => { try { URL.revokeObjectURL(u); } catch (e) {} img.onload = img.onerror = null; };
+    img.onerror = () => { done(); reject(new Error('decode-failed')); };
+    img.onload = () => {
+      try {
+        const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+        const canvas = shrinkToCanvas(img, w, h);
+        done(); img.removeAttribute('src');
+        resolve({ canvas, dims: { w, h } });
+      } catch (e) { done(); reject(e); }
+    };
+    img.src = u;
+  });
+}
+
+// Method D: full-size bitmap, then shrink on a canvas.
+async function prepViaBitmapFull(file) {
+  if (typeof createImageBitmap !== 'function') throw new Error('no-createImageBitmap');
+  const bmp = await createImageBitmap(file);
+  try { return { canvas: shrinkToCanvas(bmp, bmp.width, bmp.height), dims: { w: bmp.width, h: bmp.height } }; }
+  finally { if (bmp.close) bmp.close(); }
+}
+
+// Callback signature is unchanged: (dataUrl, b64, mime, meta) with meta = { w, h, bytes }
+// holding the ORIGINAL pixel size + file size for the print-size math.
 function compressImage(file, callback) {
   const maxBytes = 4.5 * 1024 * 1024; // safe limit under the API's 5MB
+  const mb = (file.size / 1048576).toFixed(1);
   // trail records what actually happened, so a failure can say WHY instead of a generic message
-  const trail = [`file ${(file.size / 1048576).toFixed(1)}MB ${file.type || 'no-type'}`];
-  const fail = (msg) => alert(`${msg}\n\n[${trail.join(' > ')}]`);
-  const reader = new FileReader();
-  reader.onerror = () => {
-    trail.push('read-error:' + ((reader.error && reader.error.name) || 'unknown'));
-    fail('Could not read that image. Try a different photo.');
-  };
-  reader.onload = (ev) => {
-    trail.push('read-ok');
-    const img = new Image();
-    img.onerror = () => {
-      trail.push('decode-failed');
-      fail('That image could not be opened on this device. If it is HEIC, try sharing it as JPEG, or use a PNG/JPEG.');
-    };
-    img.onload = () => {
-      let result = null;
-      try {
-        const w0 = img.naturalWidth || img.width, h0 = img.naturalHeight || img.height;
-        trail.push(`decoded ${w0}x${h0}`);
-        let scale = 1;
-        const maxEdge = 2400; // plenty of detail for analysis, keeps payload small
-        const longest = Math.max(img.width, img.height);
-        if (longest > maxEdge) scale = maxEdge / longest;
-        if (file.size > maxBytes) scale = Math.min(scale, Math.sqrt(maxBytes / file.size) * 0.92);
+  const trail = [`file ${mb}MB ${file.type || 'no-type'}`];
+  (async () => {
+    const hdr = await readHeaderDims(file);
+    trail.push(hdr ? `hdr ${hdr.fmt} ${hdr.w}x${hdr.h}` : 'hdr none');
 
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.max(1, Math.floor(img.width * scale));
-        canvas.height = Math.max(1, Math.floor(img.height * scale));
-        trail.push(`canvas ${canvas.width}x${canvas.height}`);
-        const ctx = canvas.getContext('2d');
-        if (!ctx) throw new Error('no-2d-context');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const methods = [
+      ['C2', () => prepViaBitmapResize(file, hdr)],
+      ['B', () => prepViaBlobUrl(file)],
+      ['D', () => prepViaBitmapFull(file)]
+    ];
+    let prep = null;
+    for (const [name, run] of methods) {
+      try { prep = await run(); trail.push(`${name}-ok`); break; }
+      catch (err) { trail.push(`${name}-fail:${(err && err.message) || (err && err.name) || 'error'}`); }
+    }
 
-        let quality = 0.85;
-        let dataUrl = canvas.toDataURL('image/jpeg', quality);
-        // Step quality down if still too big (base64 length * 0.75 ≈ bytes)
-        while (dataUrl.length * 0.75 > maxBytes && quality > 0.4) {
-          quality -= 0.1;
-          dataUrl = canvas.toDataURL('image/jpeg', quality);
-        }
-        // A canvas the browser refused to render comes back as an empty data URL
-        if (!dataUrl || dataUrl.length < 100) throw new Error('canvas-returned-empty');
-        trail.push(`encoded q${quality.toFixed(2)}`);
-        // meta carries the ORIGINAL (pre-shrink) dimensions + file size for accurate print-size math
-        const meta = { w: w0, h: h0, bytes: file.size };
-        result = [dataUrl, dataUrl.split(',')[1], 'image/jpeg', meta];
-      } catch (err) {
-        trail.push('exception:' + ((err && err.name) || 'Error') + ':' + ((err && err.message) || ''));
-        fail('That image could not be processed on this device.');
-        return;
+    if (!prep) {
+      const size = hdr ? `, ${hdr.w}×${hdr.h} px (${(hdr.w * hdr.h / 1e6).toFixed(0)} MP)` : '';
+      alert(`This photo couldn't be opened on this device (${mb} MB${size}).\n\n` +
+        `Try picking it again. If several large photos were opened in a row, close and reopen the app first. ` +
+        `If it keeps failing, send Emilio a screenshot of this message.\n\n[${trail.join(' > ')}]`);
+      return;
+    }
+
+    const c = prep.canvas;
+    try {
+      let quality = 0.85;
+      let dataUrl = c.toDataURL('image/jpeg', quality);
+      // Step quality down if still too big (base64 length * 0.75 ≈ bytes)
+      while (dataUrl.length * 0.75 > maxBytes && quality > 0.4) {
+        quality -= 0.1;
+        dataUrl = c.toDataURL('image/jpeg', quality);
       }
-      callback(...result);
-    };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
+      if (!dataUrl || dataUrl.length < 100) throw new Error('canvas-returned-empty');
+      trail.push(`out ${c.width}x${c.height} q${quality.toFixed(2)}`);
+
+      // True size: header first (exact at any size), else the decoded size.
+      let w = hdr ? hdr.w : (prep.dims && prep.dims.w);
+      let h = hdr ? hdr.h : (prep.dims && prep.dims.h);
+      // Header size is as stored; if the photo displays rotated, match its orientation.
+      if (w && h && w !== h && c.width !== c.height && (w > h) !== (c.width > c.height)) { const t = w; w = h; h = t; }
+      const meta = (w && h) ? { w, h, bytes: file.size } : null;
+
+      c.width = 0; c.height = 0; // release canvas memory (matters on iPad)
+      callback(dataUrl, dataUrl.split(',')[1], 'image/jpeg', meta);
+    } catch (err) {
+      c.width = 0; c.height = 0;
+      trail.push('exception:' + ((err && err.name) || 'Error') + ':' + ((err && err.message) || ''));
+      alert(`This photo couldn't be processed on this device (${mb} MB).\n\n[${trail.join(' > ')}]`);
+    }
+  })();
 }
 
 // ── PRINT SIZE MATH (deterministic, from the real pixel dimensions) ──
