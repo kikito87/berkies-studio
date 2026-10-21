@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Image decode test</title>
+<style>
+body{font-family:-apple-system,Helvetica,Arial,sans-serif;margin:0;padding:1.2rem;max-width:760px;margin:0 auto;color:#1a1510;background:#f4efe6}
+h1{font-size:1.2rem;margin:.2rem 0 .6rem}
+p{font-size:.9rem;line-height:1.5}
+.pick{display:block;background:#fffdf9;border:1.5px dashed #8a7c6e;border-radius:8px;padding:1.4rem;text-align:center;margin:1rem 0;font-size:1rem}
+button{font-size:.95rem;padding:.7rem 1rem;margin:.25rem .25rem .25rem 0;border:none;border-radius:6px;background:#3e2c1c;color:#fff}
+button.alt{background:#fff;color:#3e2c1c;border:1px solid #8a7c6e}
+button:disabled{opacity:.5}
+pre,textarea{width:100%;box-sizing:border-box;background:#fffdf9;border:1px solid #ddd5c8;border-radius:6px;padding:.7rem;font-size:.78rem;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+textarea{height:14rem;font-family:ui-monospace,Menlo,monospace}
+.warn{background:#fdf0ee;border:1px solid #f0c8c0;border-radius:6px;padding:.7rem;font-size:.85rem;display:none}
+img.out{max-width:100%;max-height:180px;border:1px solid #ddd5c8;margin:.3rem 0;display:block}
+</style>
+</head>
+<body>
+<h1>Image decode test (temporary)</h1>
+<p>Pick one of Devin's large photos from the <strong>Files app</strong>, then tap <strong>Run all</strong>. Each method runs one at a time. If the page reloads or the tab crashes, reopen it: it will say which method was running. Then screenshot the results or tap <strong>Copy results</strong>.</p>
+
+<div class="warn" id="crash"></div>
+
+<label class="pick">Tap to choose a photo
+  <input type="file" accept="image/*" id="f" style="display:block;margin:.8rem auto 0">
+</label>
+<div id="fileinfo"></div>
+
+<div>
+  <button id="runall">Run all</button>
+  <button class="alt" data-s="hdr">Header only</button>
+  <button class="alt" data-s="C">C: bitmap resize</button>
+  <button class="alt" data-s="C2">C2: bitmap resize (width only)</button>
+  <button class="alt" data-s="B">B: blob URL</button>
+  <button class="alt" data-s="D">D: bitmap full</button>
+  <button class="alt" data-s="A">A: data URL (current app)</button>
+</div>
+
+<h1 style="margin-top:1.2rem">Results</h1>
+<div id="thumbs"></div>
+<textarea id="log" readonly></textarea>
+<button id="copy">Copy results</button>
+
+<script>
+var MAX_EDGE = 2400;
+var logLines = [];
+var file = null, hdr = null;
+
+function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+function lsSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+function lsDel(k){ try { localStorage.removeItem(k); } catch(e){} }
+
+function log(s){
+  logLines.push(s);
+  document.getElementById('log').value = logLines.join('\n');
+}
+
+// If a previous run never finished, the page was killed mid-method.
+(function(){
+  var m = lsGet('dt_running');
+  if (m) {
+    var el = document.getElementById('crash');
+    el.style.display = 'block';
+    el.textContent = 'Last time, method "' + m + '" did not finish. The page probably crashed or reloaded during it. Pick the file again and run the other methods.';
+    logLines.push('PREVIOUS RUN: method ' + m + ' did NOT finish (page likely crashed/reloaded)');
+    lsDel('dt_running');
+    document.getElementById('log').value = logLines.join('\n');
+  }
+})();
+
+// ---- header parsing (no decode) ----
+function readBuf(blob){
+  return new Promise(function(res, rej){
+    var r = new FileReader();
+    r.onload = function(){ res(r.result); };
+    r.onerror = function(){ rej(r.error || new Error('read failed')); };
+    r.readAsArrayBuffer(blob);
+  });
+}
+async function parseHeader(f){
+  var buf = await readBuf(f.slice(0, Math.min(f.size, 8 * 1024 * 1024)));
+  var b = new Uint8Array(buf);
+  if (b.length > 24 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47) {
+    var dv = new DataView(buf);
+    return { fmt: 'PNG', w: dv.getUint32(16), h: dv.getUint32(20) };
+  }
+  if (b[0] === 0xFF && b[1] === 0xD8) {
+    var i = 2;
+    while (i + 9 < b.length) {
+      if (b[i] !== 0xFF) { i++; continue; }
+      var m = b[i + 1];
+      if (m === 0xFF) { i++; continue; }
+      if (m === 0xD8 || m === 0x01 || (m >= 0xD0 && m <= 0xD7)) { i += 2; continue; }
+      var len = (b[i + 2] << 8) | b[i + 3];
+      var isSOF = m >= 0xC0 && m <= 0xCF && m !== 0xC4 && m !== 0xC8 && m !== 0xCC;
+      if (isSOF) {
+        return { fmt: 'JPEG', h: (b[i + 5] << 8) | b[i + 6], w: (b[i + 7] << 8) | b[i + 8], progressive: (m === 0xC2) };
+      }
+      i += 2 + len;
+    }
+    return { fmt: 'JPEG', error: 'SOF marker not found in first 8MB' };
+  }
+  return { fmt: 'unknown', error: 'not JPEG or PNG' };
+}
+
+// ---- shared helpers ----
+function targetSize(w, h){
+  var s = Math.min(1, MAX_EDGE / Math.max(w, h));
+  return { w: Math.max(1, Math.floor(w * s)), h: Math.max(1, Math.floor(h * s)) };
+}
+// Draw source to a canvas and report whether the result looks real (not blank).
+function finish(src, sw, sh, t){
+  var c = document.createElement('canvas');
+  c.width = t.w; c.height = t.h;
+  var ctx = c.getContext('2d');
+  if (!ctx) throw new Error('no 2d context');
+  ctx.drawImage(src, 0, 0, t.w, t.h);
+  var url = c.toDataURL('image/jpeg', 0.85);
+  if (!url || url.length < 100) throw new Error('canvas-returned-empty');
+  // blank check: sample a 9x9 grid of pixels and see if they all match
+  var blank = true, first = null;
+  try {
+    for (var gy = 1; gy < 10 && blank; gy++) for (var gx = 1; gx < 10; gx++) {
+      var d = ctx.getImageData(Math.floor(t.w * gx / 10), Math.floor(t.h * gy / 10), 1, 1).data;
+      var key = d[0] + ',' + d[1] + ',' + d[2];
+      if (first === null) first = key; else if (key !== first) { blank = false; break; }
+    }
+  } catch (e) { blank = 'unknown'; }
+  var out = { outW: t.w, outH: t.h, kb: Math.round(url.length * 0.75 / 1024), blank: blank, url: url };
+  c.width = 0; c.height = 0;
+  return out;
+}
+
+// ---- strategies ----
+var S = {};
+
+// A: exactly what the live app does today
+S.A = function(f){
+  return new Promise(function(res, rej){
+    var r = new FileReader();
+    r.onerror = function(){ rej(new Error('read-error ' + (r.error && r.error.name))); };
+    r.onload = function(){
+      var img = new Image();
+      img.onerror = function(){ rej(new Error('decode-failed')); };
+      img.onload = function(){
+        try {
+          var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+          var o = finish(img, w, h, targetSize(w, h)); o.srcW = w; o.srcH = h; res(o);
+        } catch (e) { rej(e); }
+      };
+      img.src = r.result;
+    };
+    r.readAsDataURL(f);
+  });
+};
+
+// B: blob URL instead of data URL
+S.B = function(f){
+  return new Promise(function(res, rej){
+    var u = URL.createObjectURL(f);
+    var img = new Image();
+    var done = function(){ try { URL.revokeObjectURL(u); } catch(e){} };
+    img.onerror = function(){ done(); rej(new Error('decode-failed')); };
+    img.onload = function(){
+      try {
+        var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+        var o = finish(img, w, h, targetSize(w, h)); o.srcW = w; o.srcH = h; done(); res(o);
+      } catch (e) { done(); rej(e); }
+    };
+    img.src = u;
+  });
+};
+
+// C: createImageBitmap with built-in resize (needs true dims from header for aspect)
+S.C = async function(f){
+  if (typeof createImageBitmap !== 'function') throw new Error('createImageBitmap not available');
+  if (!hdr || !hdr.w) throw new Error('need header dimensions');
+  var t = targetSize(hdr.w, hdr.h);
+  var bmp = await createImageBitmap(f, { resizeWidth: t.w, resizeHeight: t.h, resizeQuality: 'high' });
+  try {
+    var o = finish(bmp, bmp.width, bmp.height, { w: bmp.width, h: bmp.height });
+    o.srcW = hdr.w; o.srcH = hdr.h; o.note = 'bitmap came back ' + bmp.width + 'x' + bmp.height + ' (asked ' + t.w + 'x' + t.h + ')';
+    return o;
+  } finally { if (bmp.close) bmp.close(); }
+};
+
+// C2: same, but only resizeWidth (some browsers ignore or reject the two-value form)
+S.C2 = async function(f){
+  if (typeof createImageBitmap !== 'function') throw new Error('createImageBitmap not available');
+  if (!hdr || !hdr.w) throw new Error('need header dimensions');
+  var t = targetSize(hdr.w, hdr.h);
+  var bmp = await createImageBitmap(f, { resizeWidth: t.w });
+  try {
+    var o = finish(bmp, bmp.width, bmp.height, { w: bmp.width, h: bmp.height });
+    o.srcW = hdr.w; o.srcH = hdr.h; o.note = 'bitmap came back ' + bmp.width + 'x' + bmp.height + ' (asked width ' + t.w + ')';
+    return o;
+  } finally { if (bmp.close) bmp.close(); }
+};
+
+// D: full-size bitmap, then downscale on canvas
+S.D = async function(f){
+  if (typeof createImageBitmap !== 'function') throw new Error('createImageBitmap not available');
+  var bmp = await createImageBitmap(f);
+  try {
+    var o = finish(bmp, bmp.width, bmp.height, targetSize(bmp.width, bmp.height));
+    o.srcW = bmp.width; o.srcH = bmp.height; return o;
+  } finally { if (bmp.close) bmp.close(); }
+};
+
+async function runOne(name){
+  if (!file) { log('Pick a file first.'); return; }
+  if (name === 'hdr') {
+    var t0 = performance.now();
+    try {
+      hdr = await parseHeader(file);
+      log('[hdr] ' + JSON.stringify(hdr) + ' in ' + Math.round(performance.now() - t0) + 'ms'
+        + (hdr.w ? '  => ' + (hdr.w * hdr.h / 1e6).toFixed(1) + ' MP' : ''));
+    } catch (e) { log('[hdr] FAILED: ' + (e && e.message)); }
+    return;
+  }
+  if (!hdr) { try { hdr = await parseHeader(file); } catch(e){} }
+  lsSet('dt_running', name);
+  var t1 = performance.now();
+  try {
+    var o = await S[name](file);
+    var line = '[' + name + '] OK ' + Math.round(performance.now() - t1) + 'ms  source ' + o.srcW + 'x' + o.srcH
+      + '  out ' + o.outW + 'x' + o.outH + '  ' + o.kb + 'KB  blank=' + o.blank + (o.note ? '  ' + o.note : '');
+    log(line);
+    var im = document.createElement('img'); im.className = 'out'; im.src = o.url;
+    var cap = document.createElement('div'); cap.style.fontSize = '.75rem'; cap.textContent = 'method ' + name;
+    document.getElementById('thumbs').appendChild(cap);
+    document.getElementById('thumbs').appendChild(im);
+  } catch (e) {
+    log('[' + name + '] FAILED after ' + Math.round(performance.now() - t1) + 'ms: ' + ((e && e.name) || 'Error') + ': ' + ((e && e.message) || ''));
+  }
+  lsDel('dt_running');
+}
+
+document.getElementById('f').addEventListener('change', function(ev){
+  file = ev.target.files[0] || null;
+  hdr = null;
+  document.getElementById('thumbs').innerHTML = '';
+  if (!file) return;
+  document.getElementById('fileinfo').textContent = 'Selected: ' + (file.size / 1048576).toFixed(1) + ' MB, type ' + (file.type || 'none');
+  log('---- new file: ' + (file.size / 1048576).toFixed(1) + ' MB, type ' + (file.type || 'none') + ' ----');
+  log('UA: ' + navigator.userAgent);
+});
+
+document.querySelectorAll('button[data-s]').forEach(function(b){
+  b.addEventListener('click', async function(){ b.disabled = true; await runOne(b.getAttribute('data-s')); b.disabled = false; });
+});
+document.getElementById('runall').addEventListener('click', async function(){
+  var btn = this; btn.disabled = true;
+  var order = ['hdr', 'C', 'C2', 'B', 'D', 'A'];
+  for (var i = 0; i < order.length; i++) { await runOne(order[i]); await new Promise(function(r){ setTimeout(r, 400); }); }
+  log('---- run complete ----');
+  btn.disabled = false;
+});
+document.getElementById('copy').addEventListener('click', function(){
+  var ta = document.getElementById('log'); var btn = this;
+  var ok = false;
+  try { ta.removeAttribute('readonly'); ta.focus(); ta.select(); ta.setSelectionRange(0, ta.value.length); ok = document.execCommand('copy'); ta.setAttribute('readonly', ''); } catch(e){}
+  btn.textContent = ok ? 'Copied' : 'Select the text above and copy it';
+  setTimeout(function(){ btn.textContent = 'Copy results'; }, 2000);
+});
+</script>
+</body>
+</html>
