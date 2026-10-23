@@ -1,89 +1,36 @@
-name: Drive to drafts (manual)
+name: Drive to drafts
 
-# Manual only. For each image in the shared Drive folder without a draft (max 5 per run):
-# download, measure with real image tools, compute print sizes with the APP'S OWN
-# rules (read from index.html at this commit), then draft the listing with the APP'S
-# OWN prompt and save everything to Supabase `drafts`.
-# Public logs show counts and pixel sizes only: no file names, IDs, EXIF/GPS or draft text.
+# Runs twice a day (12:17 and 23:17 UTC = 8:17 AM / 7:17 PM Eastern in summer,
+# 7:17 AM / 6:17 PM in winter) and on demand. First checks Drive cheaply; only if
+# there are new photos does it install tools, measure, compute print sizes with the
+# APP'S OWN rules, and draft with the APP'S OWN prompt (both read from index.html).
+# A photo that fails 3 times is skipped (reset via Supabase to retry).
+# Public logs show counts and pixel sizes only: no names, IDs, EXIF/GPS or draft text.
 on:
+  schedule:
+    - cron: "17 12,23 * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: drive-to-drafts
+  cancel-in-progress: false
+
 jobs:
   run:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SA_KEY }}
+      DRIVE_FOLDER_ID: ${{ secrets.DRIVE_FOLDER_ID }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      SUPABASE_URL: https://afnfnvbpbbmrgcsbpswc.supabase.co
+      MAX_PER_RUN: "5"
+      PYTHONUNBUFFERED: "1"
     steps:
-      - name: Install image tools
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq libvips-tools libimage-exiftool-perl > /dev/null
-          pip install --quiet google-auth requests
-
-      - name: Get app rules from index.html
-        run: |
-          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/index.html" -o index.html
-          cat > extract.js << 'JS'
-          // Pull the app's own prompt + print-size math out of index.html at run time,
-          // so the scheduled job and the app always share one source of truth.
-          const fs = require('fs'), vm = require('vm');
-          const html = fs.readFileSync(process.argv[2], 'utf8');
-          function balanced(start, open, close) {
-            let d = 0, j = html.indexOf(open, start);
-            for (let k = j; k < html.length; k++) {
-              if (html[k] === open) d++;
-              else if (html[k] === close && --d === 0) return k + 1;
-            }
-            throw new Error('unbalanced at ' + start);
-          }
-          function grab(marker, open, close) {
-            const i = html.indexOf(marker); if (i < 0) throw new Error('missing: ' + marker);
-            return html.slice(i, balanced(i, open, close));
-          }
-          function grabTpl(name) {
-            const i = html.indexOf(`const ${name} = \``); if (i < 0) throw new Error('missing: ' + name);
-            for (let k = html.indexOf('`', i) + 1; k < html.length; k++) {
-              if (html[k] === '\\') { k++; continue; }
-              if (html[k] === '`') return html.slice(i, k + 1);
-            }
-            throw new Error('unterminated: ' + name);
-          }
-          const src = [
-            grab('const CONFIG = {', '{', '}') + ';',
-            'const CURRENT_YEAR = new Date().getFullYear();',
-            grabTpl('BRAND_IDENTITY') + ';',
-            grabTpl('LISTING_SYSTEM') + ';',
-            grab('const FRAME_SIZES = [', '[', ']') + ';',
-            grab('function computePrintOptions(', '{', '}'),
-            grab('function compressionFlag(', '{', '}'),
-            grab('function buildPrintNote(', '{', '}'),
-            `const input = JSON.parse(process_input);
-             out = { system: LISTING_SYSTEM, appVersion: CONFIG.version, modelFallback: CONFIG.modelFallback,
-                     minPPI: CONFIG.minPPI, premiumPPI: CONFIG.premiumPPI, items: input.map(f => {
-               const p = computePrintOptions(f.w, f.h);
-               const fmt = f.fileType || null;
-               return { id: f.id, print: p, compressionFlag: compressionFlag(f.w, f.h, f.bytes),
-                        printNote: p && !p.tooLow ? buildPrintNote(p.defaultMax.label, p.example.label, fmt) : null };
-             }) };`
-          ].join('\n');
-          const ctx = { out: null, process_input: fs.readFileSync(0, 'utf8') };
-          vm.createContext(ctx); vm.runInContext(src, ctx);
-          process.stdout.write(JSON.stringify(ctx.out));
-          JS
-          echo '[{"id":"selftest","w":12604,"h":16808,"bytes":215328155,"fileType":"JPEG"}]' | node extract.js index.html > /dev/null
-          echo "App prompt and print rules loaded OK"
-
-      - name: Drive to Supabase (with drafts)
-        env:
-          GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SA_KEY }}
-          DRIVE_FOLDER_ID: ${{ secrets.DRIVE_FOLDER_ID }}
-          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          SUPABASE_URL: https://afnfnvbpbbmrgcsbpswc.supabase.co
-          MAX_PER_RUN: "5"
-          PYTHONUNBUFFERED: "1"
+      - name: Write job script
         run: |
           cat > job.py << 'PY'
           import base64, datetime, json, os, re, subprocess, sys, time, requests
@@ -92,7 +39,10 @@ jobs:
 
           def log(*a): print(*a, flush=True)
 
-          for k in ("GDRIVE_SA_KEY", "DRIVE_FOLDER_ID", "SUPABASE_SECRET_KEY", "ANTHROPIC_API_KEY"):
+          CHECK_ONLY = os.environ.get("CHECK_ONLY") == "1"
+          MAX_ATTEMPTS = 3
+          need = ("GDRIVE_SA_KEY", "DRIVE_FOLDER_ID", "SUPABASE_SECRET_KEY") + (() if CHECK_ONLY else ("ANTHROPIC_API_KEY",))
+          for k in need:
               if not os.environ.get(k, "").strip():
                   sys.exit(f"Missing secret: {k}")
           MAX = int(os.environ.get("MAX_PER_RUN", "5"))
@@ -122,7 +72,7 @@ jobs:
               if w.status_code not in (200, 201, 204):
                   sys.exit(f"Supabase write failed: HTTP {w.status_code} {w.text[:200]}")
 
-          r = requests.get(rest, headers=sb, params={"select": "drive_file_id,print_facts,draft"}, timeout=30)
+          r = requests.get(rest, headers=sb, params={"select": "drive_file_id,print_facts,draft,attempts"}, timeout=30)
           if r.status_code != 200:
               sys.exit(f"Supabase read failed: HTTP {r.status_code} {r.text[:200]}")
           rows = {x["drive_file_id"]: x for x in r.json()}
@@ -136,8 +86,20 @@ jobs:
           files = r.json().get("files", [])
           for f in files:
               log(f"::add-mask::{f['id']}")
-          todo = [f for f in files if not (rows.get(f["id"]) or {}).get("draft")][:MAX]
-          log(f"Images in folder: {len(files)}   already drafted: {len(files) - len([f for f in files if not (rows.get(f['id']) or {}).get('draft')])}   to process now: {len(todo)}")
+          def needs_work(f):
+              row = rows.get(f["id"]) or {}
+              return not row.get("draft") and (row.get("attempts") or 0) < MAX_ATTEMPTS
+          pending = [f for f in files if needs_work(f)]
+          gave_up = [f for f in files if not (rows.get(f["id"]) or {}).get("draft") and not needs_work(f)]
+          todo = pending[:MAX]
+          log(f"Images in folder: {len(files)}   drafted: {len(files) - len(pending) - len(gave_up)}   "
+              f"skipped after {MAX_ATTEMPTS} failed tries: {len(gave_up)}   to process now: {len(todo)}")
+          if CHECK_ONLY:
+              gho = os.environ.get("GITHUB_OUTPUT")
+              if gho:
+                  with open(gho, "a") as fh:
+                      fh.write(f"todo={len(todo)}\n")
+              sys.exit(0)
           if not todo:
               log("Nothing to do."); sys.exit(0)
 
@@ -248,7 +210,8 @@ jobs:
           ok = fail = 0
           for n, f in enumerate(todo, 1):
               log(f"[{n}/{len(todo)}] downloading…")
-              row = {"drive_file_id": f["id"], "file_name": f["name"]}
+              prev = rows.get(f["id"]) or {}
+              row = {"drive_file_id": f["id"], "file_name": f["name"], "attempts": prev.get("attempts") or 0}
               try:
                   with requests.get(f"https://www.googleapis.com/drive/v3/files/{f['id']}", headers=gh,
                                     params={"alt": "media", "supportsAllDrives": "true"}, stream=True, timeout=900) as d:
@@ -259,7 +222,7 @@ jobs:
                   if str(os.path.getsize("/tmp/img")) != str(f.get("size")):
                       raise RuntimeError("download size does not match Drive")
 
-                  pf = (rows.get(f["id"]) or {}).get("print_facts") or measure("/tmp/img", f)
+                  pf = prev.get("print_facts") or measure("/tmp/img", f)
                   log(f"[{n}] measured: {pf['width_px']} x {pf['height_px']} px")
 
                   app = app_logic([{"id": f["id"], "w": pf["width_px"], "h": pf["height_px"],
@@ -294,6 +257,7 @@ jobs:
                   ok += 1
               except Exception as e:
                   row["error"] = f"{type(e).__name__}: {str(e)[:300]}"
+                  row["attempts"] += 1
                   log(f"[{n}] failed: {type(e).__name__}")
                   fail += 1
               finally:
@@ -305,4 +269,77 @@ jobs:
           if fail:
               sys.exit(1)
           PY
+
+      - name: Check Drive for new photos
+        id: check
+        env:
+          CHECK_ONLY: "1"
+        run: |
+          pip install --quiet google-auth requests
           python3 job.py
+
+      - name: Install image tools
+        if: steps.check.outputs.todo != '0'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libvips-tools libimage-exiftool-perl > /dev/null
+
+      - name: Get app rules from index.html
+        if: steps.check.outputs.todo != '0'
+        run: |
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/index.html" -o index.html
+          cat > extract.js << 'JS'
+          // Pull the app's own prompt + print-size math out of index.html at run time,
+          // so the scheduled job and the app always share one source of truth.
+          const fs = require('fs'), vm = require('vm');
+          const html = fs.readFileSync(process.argv[2], 'utf8');
+          function balanced(start, open, close) {
+            let d = 0, j = html.indexOf(open, start);
+            for (let k = j; k < html.length; k++) {
+              if (html[k] === open) d++;
+              else if (html[k] === close && --d === 0) return k + 1;
+            }
+            throw new Error('unbalanced at ' + start);
+          }
+          function grab(marker, open, close) {
+            const i = html.indexOf(marker); if (i < 0) throw new Error('missing: ' + marker);
+            return html.slice(i, balanced(i, open, close));
+          }
+          function grabTpl(name) {
+            const i = html.indexOf(`const ${name} = \``); if (i < 0) throw new Error('missing: ' + name);
+            for (let k = html.indexOf('`', i) + 1; k < html.length; k++) {
+              if (html[k] === '\\') { k++; continue; }
+              if (html[k] === '`') return html.slice(i, k + 1);
+            }
+            throw new Error('unterminated: ' + name);
+          }
+          const src = [
+            grab('const CONFIG = {', '{', '}') + ';',
+            'const CURRENT_YEAR = new Date().getFullYear();',
+            grabTpl('BRAND_IDENTITY') + ';',
+            grabTpl('LISTING_SYSTEM') + ';',
+            grab('const FRAME_SIZES = [', '[', ']') + ';',
+            grab('function computePrintOptions(', '{', '}'),
+            grab('function compressionFlag(', '{', '}'),
+            grab('function buildPrintNote(', '{', '}'),
+            `const input = JSON.parse(process_input);
+             out = { system: LISTING_SYSTEM, appVersion: CONFIG.version, modelFallback: CONFIG.modelFallback,
+                     minPPI: CONFIG.minPPI, premiumPPI: CONFIG.premiumPPI, items: input.map(f => {
+               const p = computePrintOptions(f.w, f.h);
+               const fmt = f.fileType || null;
+               return { id: f.id, print: p, compressionFlag: compressionFlag(f.w, f.h, f.bytes),
+                        printNote: p && !p.tooLow ? buildPrintNote(p.defaultMax.label, p.example.label, fmt) : null };
+             }) };`
+          ].join('\n');
+          const ctx = { out: null, process_input: fs.readFileSync(0, 'utf8') };
+          vm.createContext(ctx); vm.runInContext(src, ctx);
+          process.stdout.write(JSON.stringify(ctx.out));
+          JS
+          echo '[{"id":"selftest","w":12604,"h":16808,"bytes":215328155,"fileType":"JPEG"}]' | node extract.js index.html > /dev/null
+          echo "App prompt and print rules loaded OK"
+
+      - name: Measure and draft
+        if: steps.check.outputs.todo != '0'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python3 job.py
