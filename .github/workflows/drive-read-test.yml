@@ -1,8 +1,9 @@
-name: Drive read test (manual)
+name: Drive to drafts (manual)
 
-# Manual only. Reads the newest image in the shared Drive folder,
-# measures it with real image tools, and logs ONLY technical facts.
-# Writes nothing anywhere. No file names, no EXIF/GPS in logs (repo is public).
+# Manual only. For each new image in the shared Drive folder (max 5 per run):
+# download, measure with real image tools, save measured print facts as a
+# row in Supabase `drafts`. No AI yet. Logs show counts and pixel sizes only:
+# no file names, no folder/file IDs, no EXIF/GPS (repo and logs are public).
 on:
   workflow_dispatch:
 
@@ -10,78 +11,134 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  run:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Install image tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq libvips-tools libimage-exiftool-perl time > /dev/null
+          sudo apt-get install -y -qq libvips-tools libimage-exiftool-perl > /dev/null
           pip install --quiet google-auth requests
 
-      - name: Download newest image from Drive
+      - name: Drive to Supabase
         env:
           GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SA_KEY }}
           DRIVE_FOLDER_ID: ${{ secrets.DRIVE_FOLDER_ID }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_URL: https://afnfnvbpbbmrgcsbpswc.supabase.co
+          MAX_PER_RUN: "5"
         run: |
           python3 - << 'PY'
-          import json, os, re, sys, requests
+          import json, os, re, subprocess, sys, datetime, requests
           from google.oauth2 import service_account
           from google.auth.transport.requests import Request
 
-          raw = os.environ.get("DRIVE_FOLDER_ID", "").strip()
-          if not raw or not os.environ.get("GDRIVE_SA_KEY"):
-              sys.exit("Missing secret: GDRIVE_SA_KEY or DRIVE_FOLDER_ID")
+          for k in ("GDRIVE_SA_KEY", "DRIVE_FOLDER_ID", "SUPABASE_SECRET_KEY"):
+              if not os.environ.get(k, "").strip():
+                  sys.exit(f"Missing secret: {k}")
+
+          raw = os.environ["DRIVE_FOLDER_ID"].strip()
           m = re.search(r"/folders/([A-Za-z0-9_-]+)", raw)
           folder = m.group(1) if m else raw
-          print(f"::add-mask::{folder}")  # keep the ID out of public logs
+          print(f"::add-mask::{folder}")
 
+          # --- Drive auth ---
           creds = service_account.Credentials.from_service_account_info(
               json.loads(os.environ["GDRIVE_SA_KEY"]),
               scopes=["https://www.googleapis.com/auth/drive.readonly"])
           creds.refresh(Request())
-          h = {"Authorization": f"Bearer {creds.token}"}
+          gh = {"Authorization": f"Bearer {creds.token}"}
 
-          r = requests.get("https://www.googleapis.com/drive/v3/files", headers=h, params={
-              "q": f"'{folder}' in parents and trashed=false and mimeType contains 'image/'",
-              "orderBy": "createdTime desc", "pageSize": 10,
-              "fields": "files(id,mimeType,size,imageMediaMetadata(width,height))",
-              "supportsAllDrives": "true", "includeItemsFromAllDrives": "true"})
+          # --- Supabase auth (new sb_secret_ keys go in apikey only) ---
+          sk = os.environ["SUPABASE_SECRET_KEY"].strip()
+          sb = {"apikey": sk, "Content-Type": "application/json"}
+          if not sk.startswith("sb_"):
+              sb["Authorization"] = f"Bearer {sk}"
+          rest = os.environ["SUPABASE_URL"].rstrip("/") + "/rest/v1/drafts"
+
+          r = requests.get(rest, headers=sb, params={"select": "drive_file_id"}, timeout=30)
           if r.status_code != 200:
-              sys.exit(f"Drive list failed: HTTP {r.status_code} (check folder is shared with the service account)")
+              sys.exit(f"Supabase read failed: HTTP {r.status_code} {r.text[:200]}")
+          done = {row["drive_file_id"] for row in r.json()}
+          print(f"Already in drafts: {len(done)}")
+
+          r = requests.get("https://www.googleapis.com/drive/v3/files", headers=gh, params={
+              "q": f"'{folder}' in parents and trashed=false and mimeType contains 'image/'",
+              "orderBy": "createdTime", "pageSize": 100,
+              "fields": "files(id,name,mimeType,size)",
+              "supportsAllDrives": "true", "includeItemsFromAllDrives": "true"}, timeout=60)
+          if r.status_code != 200:
+              sys.exit(f"Drive list failed: HTTP {r.status_code}")
           files = r.json().get("files", [])
-          print(f"Images found in folder: {len(files)}")
-          if not files:
-              sys.exit("No images found. Is the upload finished?")
-          f = files[0]
-          print(f"::add-mask::{f['id']}")
-          meta = f.get("imageMediaMetadata") or {}
-          print(f"Drive reports: type={f['mimeType']} bytes={f.get('size')} "
-                f"width={meta.get('width')} height={meta.get('height')}")
+          new = [f for f in files if f["id"] not in done][: int(os.environ["MAX_PER_RUN"])]
+          for f in files:
+              print(f"::add-mask::{f['id']}")
+          print(f"Images in folder: {len(files)}   new to process this run: {len(new)}")
 
-          with requests.get(f"https://www.googleapis.com/drive/v3/files/{f['id']}",
-                            headers=h, params={"alt": "media", "supportsAllDrives": "true"},
-                            stream=True, timeout=600) as d:
-              if d.status_code != 200:
-                  sys.exit(f"Download failed: HTTP {d.status_code}")
-              n = 0
-              with open("/tmp/img", "wb") as out:
-                  for chunk in d.iter_content(8 << 20):
-                      out.write(chunk); n += len(chunk)
-          print(f"Downloaded bytes: {n}  (matches Drive size: {str(n) == str(f.get('size'))})")
+          def sh(*args):
+              return subprocess.run(args, capture_output=True, text=True, check=True).stdout.strip()
+
+          def measure(path, f):
+              facts = {
+                  "width_px": int(sh("vipsheader", "-f", "width", path)),
+                  "height_px": int(sh("vipsheader", "-f", "height", path)),
+                  "channels": int(sh("vipsheader", "-f", "bands", path)),
+                  "file_bytes": os.path.getsize(path),
+                  "mime_type": f["mimeType"],
+              }
+              tags = ["-FileType", "-BitsPerSample", "-ColorSpace", "-ProfileDescription",
+                      "-XResolution", "-YResolution", "-ResolutionUnit"]
+              ex = json.loads(sh("exiftool", "-j", *tags, path))[0]
+              facts.update({
+                  "file_type": ex.get("FileType"),
+                  "bits_per_sample": ex.get("BitsPerSample"),
+                  "color_space": ex.get("ColorSpace"),
+                  "icc_profile": ex.get("ProfileDescription"),
+                  "dpi_tag_x": ex.get("XResolution"),
+                  "dpi_tag_y": ex.get("YResolution"),
+                  "dpi_tag_unit": ex.get("ResolutionUnit"),
+              })
+              sh("vips", "avg", path)  # full decode: proves the file is complete and readable
+              facts["full_decode_ok"] = True
+              try:
+                  facts["measured_by"] = sh("vips", "--version").split()[0] + " + exiftool " + sh("exiftool", "-ver")
+              except Exception:
+                  facts["measured_by"] = "libvips + exiftool"
+              facts["measured_at"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+              return facts
+
+          ok = fail = 0
+          for f in new:
+              row = {"drive_file_id": f["id"], "file_name": f["name"]}
+              try:
+                  with requests.get(f"https://www.googleapis.com/drive/v3/files/{f['id']}",
+                                    headers=gh, params={"alt": "media", "supportsAllDrives": "true"},
+                                    stream=True, timeout=900) as d:
+                      d.raise_for_status()
+                      with open("/tmp/img", "wb") as out:
+                          for chunk in d.iter_content(8 << 20):
+                              out.write(chunk)
+                  if str(os.path.getsize("/tmp/img")) != str(f.get("size")):
+                      raise RuntimeError("download size does not match Drive")
+                  row["print_facts"] = measure("/tmp/img", f)
+                  row["error"] = None
+                  pf = row["print_facts"]
+                  print(f"  measured: {pf['width_px']} x {pf['height_px']} px, {pf['icc_profile']}")
+                  ok += 1
+              except Exception as e:
+                  row["error"] = f"{type(e).__name__}: {str(e)[:300]}"
+                  print(f"  failed: {type(e).__name__}")
+                  fail += 1
+              finally:
+                  if os.path.exists("/tmp/img"):
+                      os.remove("/tmp/img")
+              w = requests.post(rest, headers={**sb, "Prefer": "resolution=merge-duplicates,return=minimal"},
+                                params={"on_conflict": "drive_file_id"}, data=json.dumps(row), timeout=30)
+              if w.status_code not in (200, 201, 204):
+                  sys.exit(f"Supabase write failed: HTTP {w.status_code} {w.text[:200]}")
+
+          print(f"Done. saved={ok} failed={fail}")
+          if fail:
+              sys.exit(1)
           PY
-
-      - name: Measure with real image tools
-        run: |
-          echo "--- vipsheader ---"
-          echo "width:  $(vipsheader -f width /tmp/img)"
-          echo "height: $(vipsheader -f height /tmp/img)"
-          echo "bands:  $(vipsheader -f bands /tmp/img)"
-          echo "format: $(vipsheader -f format /tmp/img)"
-          echo "--- exiftool (technical tags only) ---"
-          exiftool -s -FileType -BitsPerSample -ColorSpace -ProfileDescription \
-                   -XResolution -YResolution -ResolutionUnit /tmp/img || true
-          echo "--- full decode test (memory + time) ---"
-          /usr/bin/time -f "elapsed=%es  peak_memory=%MKB" vips avg /tmp/img
-          rm -f /tmp/img
