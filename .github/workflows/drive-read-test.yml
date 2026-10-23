@@ -1,0 +1,87 @@
+name: Drive read test (manual)
+
+# Manual only. Reads the newest image in the shared Drive folder,
+# measures it with real image tools, and logs ONLY technical facts.
+# Writes nothing anywhere. No file names, no EXIF/GPS in logs (repo is public).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Install image tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libvips-tools libimage-exiftool-perl time > /dev/null
+          pip install --quiet google-auth requests
+
+      - name: Download newest image from Drive
+        env:
+          GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SA_KEY }}
+          DRIVE_FOLDER_ID: ${{ secrets.DRIVE_FOLDER_ID }}
+        run: |
+          python3 - << 'PY'
+          import json, os, re, sys, requests
+          from google.oauth2 import service_account
+          from google.auth.transport.requests import Request
+
+          raw = os.environ.get("DRIVE_FOLDER_ID", "").strip()
+          if not raw or not os.environ.get("GDRIVE_SA_KEY"):
+              sys.exit("Missing secret: GDRIVE_SA_KEY or DRIVE_FOLDER_ID")
+          m = re.search(r"/folders/([A-Za-z0-9_-]+)", raw)
+          folder = m.group(1) if m else raw
+          print(f"::add-mask::{folder}")  # keep the ID out of public logs
+
+          creds = service_account.Credentials.from_service_account_info(
+              json.loads(os.environ["GDRIVE_SA_KEY"]),
+              scopes=["https://www.googleapis.com/auth/drive.readonly"])
+          creds.refresh(Request())
+          h = {"Authorization": f"Bearer {creds.token}"}
+
+          r = requests.get("https://www.googleapis.com/drive/v3/files", headers=h, params={
+              "q": f"'{folder}' in parents and trashed=false and mimeType contains 'image/'",
+              "orderBy": "createdTime desc", "pageSize": 10,
+              "fields": "files(id,mimeType,size,imageMediaMetadata(width,height))",
+              "supportsAllDrives": "true", "includeItemsFromAllDrives": "true"})
+          if r.status_code != 200:
+              sys.exit(f"Drive list failed: HTTP {r.status_code} (check folder is shared with the service account)")
+          files = r.json().get("files", [])
+          print(f"Images found in folder: {len(files)}")
+          if not files:
+              sys.exit("No images found. Is the upload finished?")
+          f = files[0]
+          print(f"::add-mask::{f['id']}")
+          meta = f.get("imageMediaMetadata") or {}
+          print(f"Drive reports: type={f['mimeType']} bytes={f.get('size')} "
+                f"width={meta.get('width')} height={meta.get('height')}")
+
+          with requests.get(f"https://www.googleapis.com/drive/v3/files/{f['id']}",
+                            headers=h, params={"alt": "media", "supportsAllDrives": "true"},
+                            stream=True, timeout=600) as d:
+              if d.status_code != 200:
+                  sys.exit(f"Download failed: HTTP {d.status_code}")
+              n = 0
+              with open("/tmp/img", "wb") as out:
+                  for chunk in d.iter_content(8 << 20):
+                      out.write(chunk); n += len(chunk)
+          print(f"Downloaded bytes: {n}  (matches Drive size: {str(n) == str(f.get('size'))})")
+          PY
+
+      - name: Measure with real image tools
+        run: |
+          echo "--- vipsheader ---"
+          echo "width:  $(vipsheader -f width /tmp/img)"
+          echo "height: $(vipsheader -f height /tmp/img)"
+          echo "bands:  $(vipsheader -f bands /tmp/img)"
+          echo "format: $(vipsheader -f format /tmp/img)"
+          echo "--- exiftool (technical tags only) ---"
+          exiftool -s -FileType -BitsPerSample -ColorSpace -ProfileDescription \
+                   -XResolution -YResolution -ResolutionUnit /tmp/img || true
+          echo "--- full decode test (memory + time) ---"
+          /usr/bin/time -f "elapsed=%es  peak_memory=%MKB" vips avg /tmp/img
+          rm -f /tmp/img
