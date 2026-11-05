@@ -888,7 +888,7 @@ const CONFIG = {
 
   // Shown in the footer so Devin can confirm she's on the latest version.
   // Bump these each time a new file is deployed.
-  version: 'v1.2.3',
+  version: 'v1.2.4',
   updated: 'Oct 23, 2026'
 };
 
@@ -1829,7 +1829,7 @@ Only include tool_recommendations if software is not set or a better tool exists
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({ model: CURRENT_MODEL, max_tokens: 2000, system: systemPrompt, tools, messages })
+        body: JSON.stringify({ model: CURRENT_MODEL, max_tokens: 6000, system: systemPrompt, tools, messages })
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error.message || 'API error');
@@ -1847,20 +1847,28 @@ Only include tool_recommendations if software is not set or a better tool exists
         status.textContent = 'Writing your guidance…';
       } else {
         finalText = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+        if (data.stop_reason === 'max_tokens') throw new Error('REPLY_CUT_OFF');
         break;
       }
     }
 
     clearInterval(pi); bar.style.width = '100%';
+    if (!finalText) throw new Error('REPLY_EMPTY');
     const cleaned = finalText.replace(/```json|```/g, '').trim();
     const jStart = cleaned.indexOf('{'); const jEnd = cleaned.lastIndexOf('}') + 1;
-    const result = JSON.parse(cleaned.slice(jStart, jEnd));
+    let result;
+    try { result = JSON.parse(cleaned.slice(jStart, jEnd)); }
+    catch (e) { throw new Error('REPLY_UNREADABLE'); }
     renderEditResult(result);
     status.textContent = 'Guidance ready.';
 
   } catch(err) {
     clearInterval(pi);
-    showEditError('Something went wrong talking to the API. Check your key and connection, then try again.');
+    const m = (err && err.message) || '';
+    const msg = m === 'REPLY_CUT_OFF' ? 'The guidance was too long and got cut off. Please try again.'
+      : (m === 'REPLY_UNREADABLE' || m === 'REPLY_EMPTY') ? 'The guidance came back in an unexpected format. Please try again.'
+      : 'Something went wrong talking to the API: ' + (m || 'unknown error') + '. Check your key and connection, then try again.';
+    showEditError(msg);
     status.textContent = '';
     console.error(err);
   } finally {
